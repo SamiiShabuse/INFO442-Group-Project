@@ -1,5 +1,11 @@
 # Portfolio Optimization & Risk Analytics Dashboard
 
+## Simple Summary
+
+We’re building a data science dashboard that acts like a simplified portfolio manager. It takes historical market data, analyzes risk and return, and builds portfolios for different risk levels. Then it compares those portfolios using metrics like volatility, Sharpe ratio, max drawdown, and cumulative return. It’s educational and analytical, not financial advice.
+
+The model is portfolio optimization. We’ll use historical returns and the covariance/correlation between assets to create optimized portfolios, such as minimum-risk and maximum-Sharpe portfolios, then evaluate them against baselines like equal-weight or S&P 500.
+
 ## Project Overview
 
 This project is a data science application that builds and evaluates investment portfolios based on historical market data, asset risk, return behavior, and investor risk preferences.

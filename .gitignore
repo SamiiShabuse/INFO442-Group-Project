@@ -6,3 +6,4 @@ data/raw/
 data/processed/
 *.pyc
 .DS_Store
+.env

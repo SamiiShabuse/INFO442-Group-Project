@@ -42,92 +42,55 @@ Team Roles:
 
 ---
 
-## Week 2: Proposal and Data Plan
+## Week 2: Proposal, Data Acquisition, and Preprocessing
 
-**Goal:** Finalize the proposal and decide exactly what data will be collected.
+**Goal:** Finalize the proposal, collect the raw datasets, and clean/preprocess each source dataset.
 
 **Status:** Complete.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Finalized the asset universe across equities, sectors, bonds, gold/commodities, international exposure, and SPY as the benchmark. Tested pulling price data with `yfinance`. |
-| EDA/Feature Lead | Defined the planned features for each asset, including returns, rolling volatility, moving averages, volume changes, benchmark comparison, and drawdowns. |
-| Modeling Lead | Defined the first predictive model approach and the portfolio strategies that will be compared. |
-| Dashboard/Documentation Lead | Finalized the project proposal, research question, business value sections, and source-specific README notes. |
+| Data Lead | Finalized the asset universe across equities, sectors, bonds, gold/commodities, international exposure, and SPY as the benchmark. Pulled and cleaned historical price and volume data with `yfinance`. |
+| EDA/Feature Lead | Defined the planned features for each asset and completed initial EDA for the `yfinance` data, including returns, cumulative returns, daily returns, and visual checks. |
+| Modeling Lead | Defined the first predictive model approach and collected/cleaned FRED risk-free rate and CPI data for later Sharpe ratio and macro context. |
+| Dashboard/Documentation Lead | Finalized the project proposal, research question, business value sections, and source-specific README notes. Helped document and organize the `yfinance`, Wikipedia, and FRED workflows. |
 
 **Standup update examples:**
 
 - We selected our first asset universe and benchmark.
-- We tested the market data source.
+- We collected raw market data, sector/category data, and FRED data.
+- We cleaned and preprocessed the individual source datasets.
 - We finalized the predictive modeling and portfolio comparison plan.
 - We separated the data work into `yfinance`, Wikipedia, and FRED workflows.
 
 ---
 
-## Week 3: Data Acquisition
+## Week 3: Data Integration Validation and Data Dictionary
 
-**Goal:** Finish validating the raw data workflows and make sure each source can be rerun cleanly.
-
-| Team Member | Tasks |
-|---|---|
-| Data Lead | Confirm the `yfinance` acquisition notebook, final ticker list, date range, benchmark, and raw output files. |
-| EDA/Feature Lead | Confirm the Wikipedia acquisition notebook and identify which selected assets need manual sector/category labels because they are ETFs or not in the S&P 500 table. |
-| Modeling Lead | Confirm the FRED acquisition notebook and make sure the risk-free rate and CPI files are saved with clear column names. |
-| Dashboard/Documentation Lead | Document each data source, date range, ticker list, generated file name, and why each source is being used. |
-
-**Standup update examples:**
-
-- We validated the raw market dataset and benchmark.
-- We added sector/category data for diversification analysis.
-- We confirmed the FRED risk-free rate and CPI data sources.
-
----
-
-## Week 4: Data Cleaning and Preprocessing
-
-**Goal:** Finish cleaning each source and lock the rules for combining them.
+**Goal:** Validate the combined dataset, confirm the join logic, and document the final integrated data structure.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Confirm price data, adjusted close data, daily returns, and missing-value handling for the market data. |
-| EDA/Feature Lead | Check whether the sector/category data matches the selected tickers and flag any missing labels or ETF categories. |
-| Modeling Lead | Align FRED data with trading dates and decide how to forward-fill monthly or daily macro values. |
-| Dashboard/Documentation Lead | Document cleaning decisions, folder structure, and a first data dictionary for raw, processed, and integrated files. |
+| Data Lead | Validate the integrated dataset shape, date range, ticker coverage, and missing values after combining all sources. |
+| EDA/Feature Lead | Confirm that sector/category labels cover all selected assets, including ETFs and assets outside the S&P 500 table. |
+| Modeling Lead | Confirm that benchmark returns, risk-free rate, and CPI are aligned correctly with trading dates and do not create duplicate columns. |
+| Dashboard/Documentation Lead | Create or update the data dictionary for the integrated dataset, including column names, join keys, and known limitations. |
 
 **Standup update examples:**
 
-- We cleaned and aligned the historical price data.
-- We calculated daily returns.
-- We decided how to align sector, CPI, and risk-free rate data with the market data.
+- We combined the market, sector/category, and FRED datasets.
+- We checked missing values, duplicate columns, and date alignment across all sources.
+- We documented the integrated dataset columns and join logic.
 
 ---
 
-## Week 5: Data Integration and Complete Dataset
-
-**Goal:** Build and validate the combined dataset before adding modeling features.
-
-| Team Member | Tasks |
-|---|---|
-| Data Lead | Finalize cleaned source files and make sure the source notebooks can be rerun without overwriting the wrong files. |
-| EDA/Feature Lead | Validate the integrated dataset shape, ticker coverage, sector/category coverage, and missing values. |
-| Modeling Lead | Confirm that benchmark returns, risk-free rate, and CPI are aligned correctly with trading dates. |
-| Dashboard/Documentation Lead | Update documentation to explain the integrated dataset, columns, join keys, and remaining limitations. |
-
-**Standup update examples:**
-
-- We created the first integrated dataset.
-- We checked missing values and date alignment across all sources.
-- We documented the columns and join logic.
-
----
-
-## Week 6: Feature Engineering and Exploratory Data Analysis
+## Week 4: Feature Engineering and Exploratory Data Analysis
 
 **Goal:** Create model-ready features and use EDA to check whether the features make sense.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Fix any data issues discovered during EDA. |
+| Data Lead | Fix any data issues discovered during feature engineering or EDA. |
 | EDA/Feature Lead | Create model features such as rolling returns, rolling volatility, moving averages, volume changes, recent drawdown, and benchmark correlation. |
 | Modeling Lead | Define the target variable for prediction, such as future realized volatility over a set window, and review feature patterns. |
 | Dashboard/Documentation Lead | Add the strongest EDA charts and feature explanations to the report/dashboard draft. |
@@ -140,7 +103,7 @@ Team Roles:
 
 ---
 
-## Week 7: Predictive Modeling
+## Week 5: Predictive Modeling
 
 **Goal:** Build and evaluate the first future volatility prediction model.
 
@@ -159,7 +122,7 @@ Team Roles:
 
 ---
 
-## Week 8: Portfolio Optimization and Evaluation
+## Week 6: Portfolio Optimization and Evaluation
 
 **Goal:** Use predicted volatility in portfolio construction and compare against baselines.
 
@@ -178,9 +141,28 @@ Team Roles:
 
 ---
 
-## Week 9: Dashboard, Report, and Polish
+## Week 7: Dashboard Build
 
-**Goal:** Turn the analysis into a polished final product.
+**Goal:** Build the first usable dashboard version for exploring model and portfolio results.
+
+| Team Member | Tasks |
+|---|---|
+| Data Lead | Make sure final data files load correctly into the dashboard. |
+| EDA/Feature Lead | Prepare clean charts for returns, risk, correlations, and sector/category exposure. |
+| Modeling Lead | Prepare model and portfolio result tables for dashboard display. |
+| Dashboard/Documentation Lead | Build dashboard sections for inputs, portfolio allocation, model results, strategy comparison, and project explanation. |
+
+**Standup update examples:**
+
+- We built the first working dashboard version.
+- We added charts and tables for portfolio comparison.
+- We connected the final data/model outputs to the dashboard.
+
+---
+
+## Week 8: Report and Project Polish
+
+**Goal:** Polish the dashboard, report, README, and project narrative.
 
 | Team Member | Tasks |
 |---|---|
@@ -197,22 +179,41 @@ Team Roles:
 
 ---
 
-## Week 10: Final Presentation and Submission
+## Week 9: Final Presentation Preparation
 
-**Goal:** Finish the dashboard, report, slides, and final submission.
+**Goal:** Prepare the dashboard demo, report, slides, and final explanation for each project area.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Prepare a short explanation of the data sources, cleaning, and preprocessing. |
+| Data Lead | Prepare a short explanation of the data sources, cleaning, preprocessing, and integration decisions. |
 | EDA/Feature Lead | Prepare a short explanation of the feature engineering and EDA findings. |
 | Modeling Lead | Prepare a short explanation of the predictive model, portfolio optimization, evaluation metrics, and limitations. |
 | Dashboard/Documentation Lead | Prepare the final dashboard demo, final report, final slides, and submission checklist. |
 
 **Standup update examples:**
 
-- We finalized the dashboard.
+- We finalized the dashboard demo plan.
 - We completed the final report and slides.
 - Each person prepared their section for the final presentation.
+
+---
+
+## Week 10: Final Submission and Buffer
+
+**Goal:** Finish any last fixes, rehearse the presentation, and submit the final project.
+
+| Team Member | Tasks |
+|---|---|
+| Data Lead | Double-check that the final data files and notebooks are reproducible. |
+| EDA/Feature Lead | Double-check final charts and make sure they match the report/dashboard narrative. |
+| Modeling Lead | Double-check final model and portfolio results, assumptions, and limitations. |
+| Dashboard/Documentation Lead | Submit the final dashboard, report, slides, README, and any required class materials. |
+
+**Standup update examples:**
+
+- We fixed final issues from review or rehearsal.
+- We submitted the final project materials.
+- We confirmed the repo is clean and easy to understand.
 
 ---
 

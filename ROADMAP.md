@@ -2,7 +2,7 @@
 
 ## Format
 
-This is suppose to mimic a real-world project roadmap. To help everyone on the team this is the format
+This is supposed to mimic a real-world project roadmap. To help everyone on the team this is the format
 for the Senior Project roadmap. Each week has a goal, a table of tasks for each team member, and examples of what to report during the weekly standup.
 
 ## Team Structure
@@ -24,18 +24,21 @@ Team Roles:
 
 **Goal:** Agree on the updated project idea and make sure everyone understands the predictive portfolio scope.
 
+**Status:** Complete.
+
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Research possible data sources: `yfinance`, Wikipedia S&P 500 table, and FRED. Draft a first list of possible stocks/ETFs. |
-| EDA/Feature Lead | Research useful features for volatility prediction, such as rolling returns, rolling volatility, moving averages, volume changes, and benchmark correlation. |
-| Modeling Lead | Research basic volatility prediction methods and portfolio strategies: equal-weight, minimum volatility, maximum Sharpe, and risk-profile portfolios. |
-| Dashboard/Documentation Lead | Update the README/project docs so the project is clearly framed as predictive portfolio optimization, not financial advice. |
+| Data Lead | Researched possible data sources: `yfinance`, Wikipedia S&P 500 table, and FRED. Drafted the first list of possible stocks/ETFs. |
+| EDA/Feature Lead | Researched useful features for volatility prediction, such as rolling returns, rolling volatility, moving averages, volume changes, and benchmark correlation. |
+| Modeling Lead | Researched basic volatility prediction methods and portfolio strategies: equal-weight, minimum volatility, maximum Sharpe, and risk-profile portfolios. |
+| Dashboard/Documentation Lead | Updated the README/project docs so the project is clearly framed as predictive portfolio optimization, not financial advice. |
 
 **Standup update examples:**
 
 - We updated the project scope to include future volatility prediction.
 - We identified the main data sources: Yahoo Finance, Wikipedia, and FRED.
 - We started researching features, models, and portfolio strategies.
+- We set up the project folder structure and notebook organization.
 
 ---
 
@@ -43,94 +46,97 @@ Team Roles:
 
 **Goal:** Finalize the proposal and decide exactly what data will be collected.
 
+**Status:** Complete.
+
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Finalize the asset universe, likely 10-15 stocks/ETFs plus a benchmark such as SPY. Test pulling sample price data with `yfinance`. |
-| EDA/Feature Lead | Define the planned features for each asset, including returns, rolling volatility, moving averages, volume changes, and drawdowns. |
-| Modeling Lead | Define the first predictive model approach and the portfolio strategies that will be compared. |
-| Dashboard/Documentation Lead | Finalize the project proposal, research question, and business value sections. |
+| Data Lead | Finalized the asset universe across equities, sectors, bonds, gold/commodities, international exposure, and SPY as the benchmark. Tested pulling price data with `yfinance`. |
+| EDA/Feature Lead | Defined the planned features for each asset, including returns, rolling volatility, moving averages, volume changes, benchmark comparison, and drawdowns. |
+| Modeling Lead | Defined the first predictive model approach and the portfolio strategies that will be compared. |
+| Dashboard/Documentation Lead | Finalized the project proposal, research question, business value sections, and source-specific README notes. |
 
 **Standup update examples:**
 
 - We selected our first asset universe and benchmark.
 - We tested the market data source.
 - We finalized the predictive modeling and portfolio comparison plan.
+- We separated the data work into `yfinance`, Wikipedia, and FRED workflows.
 
 ---
 
 ## Week 3: Data Acquisition
 
-**Goal:** Collect the raw data needed for prices, sectors, benchmark comparison, and risk-free rate.
+**Goal:** Finish validating the raw data workflows and make sure each source can be rerun cleanly.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Pull historical daily price and volume data for selected assets and SPY. Start saving raw data files. |
-| EDA/Feature Lead | Pull or prepare sector labels from Wikipedia/S&P 500 data for diversification analysis. |
-| Modeling Lead | Pull or identify FRED risk-free rate data, such as 3-month Treasury yield, for Sharpe ratio calculations. |
-| Dashboard/Documentation Lead | Document each data source, date range, ticker list, and why each source is being used. |
+| Data Lead | Confirm the `yfinance` acquisition notebook, final ticker list, date range, benchmark, and raw output files. |
+| EDA/Feature Lead | Confirm the Wikipedia acquisition notebook and identify which selected assets need manual sector/category labels because they are ETFs or not in the S&P 500 table. |
+| Modeling Lead | Confirm the FRED acquisition notebook and make sure the risk-free rate and CPI files are saved with clear column names. |
+| Dashboard/Documentation Lead | Document each data source, date range, ticker list, generated file name, and why each source is being used. |
 
 **Standup update examples:**
 
-- We collected the first raw market dataset.
-- We added sector data for diversification analysis.
-- We identified the risk-free rate source for Sharpe ratio calculations.
+- We validated the raw market dataset and benchmark.
+- We added sector/category data for diversification analysis.
+- We confirmed the FRED risk-free rate and CPI data sources.
 
 ---
 
 ## Week 4: Data Cleaning and Preprocessing
 
-**Goal:** Clean the raw data and prepare it for feature engineering.
+**Goal:** Finish cleaning each source and lock the rules for combining them.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Clean price data, align trading dates, handle missing values, and calculate daily returns. |
-| EDA/Feature Lead | Check whether the sector data matches the selected tickers and flag any missing labels. |
-| Modeling Lead | Align risk-free rate data with trading dates and decide how to handle different data frequencies. |
-| Dashboard/Documentation Lead | Document cleaning decisions and create a simple data dictionary draft. |
+| Data Lead | Confirm price data, adjusted close data, daily returns, and missing-value handling for the market data. |
+| EDA/Feature Lead | Check whether the sector/category data matches the selected tickers and flag any missing labels or ETF categories. |
+| Modeling Lead | Align FRED data with trading dates and decide how to forward-fill monthly or daily macro values. |
+| Dashboard/Documentation Lead | Document cleaning decisions, folder structure, and a first data dictionary for raw, processed, and integrated files. |
 
 **Standup update examples:**
 
 - We cleaned and aligned the historical price data.
 - We calculated daily returns.
-- We started aligning sector and risk-free rate data with the market data.
+- We decided how to align sector, CPI, and risk-free rate data with the market data.
 
 ---
 
-## Week 5: Feature Engineering and Complete Dataset
+## Week 5: Data Integration and Complete Dataset
 
-**Goal:** Build the modeling-ready dataset.
+**Goal:** Build and validate the combined dataset before adding modeling features.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Finalize cleaned data files and make sure the data pipeline can be rerun. |
-| EDA/Feature Lead | Create model features such as rolling returns, rolling volatility, moving averages, volume changes, recent drawdown, and benchmark correlation. |
-| Modeling Lead | Define the target variable for prediction, such as future realized volatility over a set window. |
-| Dashboard/Documentation Lead | Update documentation to explain the final dataset, columns, features, and target variable. |
+| Data Lead | Finalize cleaned source files and make sure the source notebooks can be rerun without overwriting the wrong files. |
+| EDA/Feature Lead | Validate the integrated dataset shape, ticker coverage, sector/category coverage, and missing values. |
+| Modeling Lead | Confirm that benchmark returns, risk-free rate, and CPI are aligned correctly with trading dates. |
+| Dashboard/Documentation Lead | Update documentation to explain the integrated dataset, columns, join keys, and remaining limitations. |
 
 **Standup update examples:**
 
-- We created the modeling-ready dataset.
-- We engineered features for volatility prediction.
-- We defined the future volatility target variable.
+- We created the first integrated dataset.
+- We checked missing values and date alignment across all sources.
+- We documented the columns and join logic.
 
 ---
 
-## Week 6: Exploratory Data Analysis
+## Week 6: Feature Engineering and Exploratory Data Analysis
 
-**Goal:** Understand the assets, features, and relationships before modeling.
+**Goal:** Create model-ready features and use EDA to check whether the features make sense.
 
 | Team Member | Tasks |
 |---|---|
 | Data Lead | Fix any data issues discovered during EDA. |
-| EDA/Feature Lead | Create EDA visuals: cumulative returns, volatility comparison, correlation heatmap, sector breakdown, and risk-return scatterplot. |
-| Modeling Lead | Review feature patterns and decide which features should be used in the first predictive model. |
-| Dashboard/Documentation Lead | Add the strongest EDA charts and findings to the report/dashboard draft. |
+| EDA/Feature Lead | Create model features such as rolling returns, rolling volatility, moving averages, volume changes, recent drawdown, and benchmark correlation. |
+| Modeling Lead | Define the target variable for prediction, such as future realized volatility over a set window, and review feature patterns. |
+| Dashboard/Documentation Lead | Add the strongest EDA charts and feature explanations to the report/dashboard draft. |
 
 **Standup update examples:**
 
-- We created the main EDA visuals.
-- We found patterns in volatility, correlations, and sector exposure.
-- We chose the first set of features for prediction.
+- We created the first modeling features.
+- We found patterns in volatility, correlations, and sector/category exposure.
+- We chose the first set of features and the prediction target.
 
 ---
 
@@ -237,4 +243,3 @@ Each person should be able to answer:
 2. What did I finish or make progress on?
 3. What am I working on next?
 4. Am I blocked by anything?
-

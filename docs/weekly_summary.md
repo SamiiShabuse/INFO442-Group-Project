@@ -5,8 +5,9 @@
 ## What Each of Us Worked On
 
 **Danny**
-- Item
-- Item
+- Built the data acquisition pipeline pulling S&P 500 company data from Wikipedia, including tickers, sector, and sub industry info
+- Aligned the asset list with Jeffrey's finalized universe so our datasets matched up
+- Cleaned and preprocessed the data (missing values, date formatting) and ran EDA to check quality before passing it along
 
 **Jeffrey**
 - Finalized project architecture: a three-layer system — (1) regression model to predict per-asset volatility, (2) portfolio optimization across risk profiles using PyPortfolioOpt, (3) backtesting against SPY, equal-weight, min-vol, and max-Sharpe benchmarks

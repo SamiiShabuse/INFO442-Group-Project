@@ -1,0 +1,22 @@
+ticker,company_name,gics_sector,asset_type
+AAPL,Apple Inc.,Information Technology,Stock
+AGG,iShares Core U.S. Aggregate Bond ETF,Bonds,ETF
+AMZN,Amazon,Consumer Discretionary,Stock
+CAT,Caterpillar Inc.,Industrials,Stock
+GLD,SPDR Gold Shares,Gold / Commodities,ETF
+JPM,JPMorgan Chase,Financials,Stock
+KO,Coca-Cola Company (The),Consumer Staples,Stock
+LLY,Lilly (Eli),Health Care,Stock
+LMT,Lockheed Martin,Industrials,Stock
+MSFT,Microsoft,Information Technology,Stock
+NEE,NextEra Energy,Utilities,Stock
+PG,Procter & Gamble,Consumer Staples,Stock
+QQQ,Invesco QQQ Trust,Growth / Nasdaq ETF,ETF
+SPY,SPDR S&P 500 ETF Trust,Benchmark / S&P 500 ETF,ETF
+TLT,iShares 20+ Year Treasury Bond ETF,Long-Term Treasury Bonds,ETF
+UNH,UnitedHealth Group,Health Care,Stock
+V,Visa Inc.,Financials,Stock
+VNQ,Vanguard Real Estate ETF,Real Estate ETF,ETF
+VXUS,Vanguard Total International Stock ETF,International Equity ETF,ETF
+VZ,Verizon,Communication Services,Stock
+XOM,ExxonMobil,Energy,Stock

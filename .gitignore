@@ -2,7 +2,8 @@
 venv/
 __pycache__/
 .ipynb_checkpoints/
-data/raw/
-data/processed/
+.ipython/
+.jupyter_runtime/
 *.pyc
 .DS_Store
+.env

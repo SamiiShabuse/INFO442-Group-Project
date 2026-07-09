@@ -1,0 +1,15 @@
+ticker,company_name,gics_sector
+AMZN,Amazon,Consumer Discretionary
+AAPL,Apple Inc.,Information Technology
+CAT,Caterpillar Inc.,Industrials
+KO,Coca-Cola Company (The),Consumer Staples
+XOM,ExxonMobil,Energy
+JPM,JPMorgan Chase,Financials
+LLY,Lilly (Eli),Health Care
+LMT,Lockheed Martin,Industrials
+MSFT,Microsoft,Information Technology
+NEE,NextEra Energy,Utilities
+PG,Procter & Gamble,Consumer Staples
+UNH,UnitedHealth Group,Health Care
+VZ,Verizon,Communication Services
+V,Visa Inc.,Financials

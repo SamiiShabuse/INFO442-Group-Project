@@ -1,2 +1,10 @@
+.venv/
+venv/
+__pycache__/
+.ipynb_checkpoints/
+.ipython/
+.jupyter_runtime/
+*.pyc
+.DS_Store
 .env
 .ipynb_checkpoints/

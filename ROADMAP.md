@@ -2,7 +2,7 @@
 
 ## Format
 
-This is suppose to mimic a real-world project roadmap. To help everyone on the team this is the format
+This is supposed to mimic a real-world project roadmap. To help everyone on the team this is the format
 for the Senior Project roadmap. Each week has a goal, a table of tasks for each team member, and examples of what to report during the weekly standup.
 
 ## Team Structure
@@ -13,202 +13,207 @@ This is going to mimic how Senior Project will be done in the real world, where 
 
 Team Roles:
 
-- **Team Member 1: Data Lead** - data collection, cleaning, and preprocessing
-- **Team Member 2: EDA Lead** - exploratory analysis, charts, and findings
-- **Team Member 3: Modeling Lead** - portfolio strategies and evaluation metrics
-- **Team Member 4: Dashboard/Documentation Lead** - Web dashboard, README, report, and presentation materials
-
-Roles can rotate if needed, but each person should own one main area so the work is easier to track.
+- **Team Member 1: Data Lead** - data collection, cleaning, preprocessing, and data files
+- **Team Member 2: EDA/Feature Lead** - exploratory analysis, feature engineering, and visual findings
+- **Team Member 3: Modeling Lead** - volatility prediction, portfolio optimization, and evaluation metrics
+- **Team Member 4: Dashboard/Documentation Lead** - dashboard, README, report, slides, and project organization
 
 ---
 
 ## Week 1: Project Setup and Scope
 
-**Goal:** Agree on the project direction and make sure everyone understands the problem.
+**Goal:** Agree on the updated project idea and make sure everyone understands the predictive portfolio scope.
+
+**Status:** Complete.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Research possible financial data sources such as Yahoo Finance/yfinance. Make a first draft list of possible stocks/ETFs. |
-| EDA Lead | Research useful portfolio analysis charts, such as return charts, volatility charts, and correlation heatmaps. |
-| Modeling Lead | Research portfolio strategies: equal-weight, minimum volatility, and maximum Sharpe ratio. |
-| Dashboard/Documentation Lead | Organize the GitHub repo and make sure the README/project proposal clearly explains the project. |
+| Data Lead | Researched possible data sources: `yfinance`, Wikipedia S&P 500 table, and FRED. Drafted the first list of possible stocks/ETFs. |
+| EDA/Feature Lead | Researched useful features for volatility prediction, such as rolling returns, rolling volatility, moving averages, volume changes, and benchmark correlation. |
+| Modeling Lead | Researched basic volatility prediction methods and portfolio strategies: equal-weight, minimum volatility, maximum Sharpe, and risk-profile portfolios. |
+| Dashboard/Documentation Lead | Updated the README/project docs so the project is clearly framed as predictive portfolio optimization, not financial advice. |
 
 **Standup update examples:**
 
-- We decided on the main project idea.
-- We identified likely data sources.
-- We started researching the main analysis and modeling methods.
+- We updated the project scope to include future volatility prediction.
+- We identified the main data sources: Yahoo Finance, Wikipedia, and FRED.
+- We started researching features, models, and portfolio strategies.
+- We set up the project folder structure and notebook organization.
 
 ---
 
-## Week 2: Proposal and Data Plan
+## Week 2: Proposal, Data Acquisition, and Preprocessing
 
-**Goal:** Finalize the project proposal and decide what data will be used.
+**Goal:** Finalize the proposal, collect the raw datasets, and clean/preprocess each source dataset.
+
+**Status:** Complete.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Finalize the asset list, likely 10-15 stocks/ETFs. Test pulling sample historical data. |
-| EDA Lead | Define the key EDA questions, such as which assets are most volatile or most correlated. |
-| Modeling Lead | Define which portfolio models will be included in the first version. |
-| Dashboard/Documentation Lead | Finalize the proposal document and update the README with the project scope. |
+| Data Lead | Finalized the asset universe across equities, sectors, bonds, gold/commodities, international exposure, and SPY as the benchmark. Pulled and cleaned historical price and volume data with `yfinance`. |
+| EDA/Feature Lead | Defined the planned features for each asset and completed initial EDA for the `yfinance` data, including returns, cumulative returns, daily returns, and visual checks. |
+| Modeling Lead | Defined the first predictive model approach and collected/cleaned FRED risk-free rate and CPI data for later Sharpe ratio and macro context. |
+| Dashboard/Documentation Lead | Finalized the project proposal, research question, business value sections, and source-specific README notes. Helped document and organize the `yfinance`, Wikipedia, and FRED workflows. |
 
 **Standup update examples:**
 
-- We selected our first asset universe.
-- We tested that the data source works.
-- We finalized the main research question and project scope.
+- We selected our first asset universe and benchmark.
+- We collected raw market data, sector/category data, and FRED data.
+- We cleaned and preprocessed the individual source datasets.
+- We finalized the predictive modeling and portfolio comparison plan.
+- We separated the data work into `yfinance`, Wikipedia, and FRED workflows.
 
 ---
 
-## Week 3: Data Acquisition
+## Week 3: Data Integration Validation and Data Dictionary
 
-**Goal:** Collect the raw historical price data.
+**Goal:** Validate the combined dataset, confirm the join logic, and document the final integrated data structure.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Pull historical price data for all selected assets and the benchmark, such as SPY. Save raw data files. |
-| EDA Lead | Inspect the raw data for missing values, date ranges, and obvious data issues. |
-| Modeling Lead | Decide what return and risk metrics the models will need. |
-| Dashboard/Documentation Lead | Start documenting the data source, asset list, date range, and benchmark choice. |
+| Data Lead | Validate the integrated dataset shape, date range, ticker coverage, and missing values after combining all sources. |
+| EDA/Feature Lead | Confirm that sector/category labels cover all selected assets, including ETFs and assets outside the S&P 500 table. |
+| Modeling Lead | Confirm that benchmark returns, risk-free rate, and CPI are aligned correctly with trading dates and do not create duplicate columns. |
+| Dashboard/Documentation Lead | Create or update the data dictionary for the integrated dataset, including column names, join keys, and known limitations. |
 
 **Standup update examples:**
 
-- We collected the first raw dataset.
-- We checked for missing or incomplete data.
-- We documented where the data came from.
+- We combined the market, sector/category, and FRED datasets.
+- We checked missing values, duplicate columns, and date alignment across all sources.
+- We documented the integrated dataset columns and join logic.
 
 ---
 
-## Week 4: Data Cleaning and Preprocessing
+## Week 4: Feature Engineering and Exploratory Data Analysis
 
-**Goal:** Turn raw price data into clean data that can be used for analysis.
+**Goal:** Create model-ready features and use EDA to check whether the features make sense.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Clean and align the data by trading date. Calculate daily returns. |
-| EDA Lead | Create initial summary statistics for each asset. |
-| Modeling Lead | Check that the return data is usable for portfolio calculations. |
-| Dashboard/Documentation Lead | Document the preprocessing steps and cleaning decisions. |
+| Data Lead | Fix any data issues discovered during feature engineering or EDA. |
+| EDA/Feature Lead | Create model features such as rolling returns, rolling volatility, moving averages, volume changes, recent drawdown, and benchmark correlation. |
+| Modeling Lead | Define the target variable for prediction, such as future realized volatility over a set window, and review feature patterns. |
+| Dashboard/Documentation Lead | Add the strongest EDA charts and feature explanations to the report/dashboard draft. |
 
 **Standup update examples:**
 
-- We cleaned the historical price data.
-- We calculated daily returns.
-- We created the first summary statistics.
+- We created the first modeling features.
+- We found patterns in volatility, correlations, and sector/category exposure.
+- We chose the first set of features and the prediction target.
 
 ---
 
-## Week 5: Complete Dataset and Feature Engineering
+## Week 5: Predictive Modeling
 
-**Goal:** Finalize the dataset for EDA and modeling.
+**Goal:** Build and evaluate the first future volatility prediction model.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Finalize the cleaned dataset and save it in the project folder. |
-| EDA Lead | Calculate asset-level metrics such as annualized return and volatility. |
-| Modeling Lead | Create covariance and correlation matrices needed for optimization. |
-| Dashboard/Documentation Lead | Create a simple data dictionary explaining each file and column. |
+| Data Lead | Prepare train/test datasets using a time-based split. |
+| EDA/Feature Lead | Help inspect feature importance or model behavior, if available. |
+| Modeling Lead | Train the first regression model to predict future realized volatility. Evaluate it using MAE and RMSE. |
+| Dashboard/Documentation Lead | Start documenting the model method, inputs, target variable, and evaluation results. |
 
 **Standup update examples:**
 
-- We finalized the modeling-ready dataset.
-- We created annualized return and volatility features.
-- We created the covariance and correlation matrices.
+- We created a time-based train/test split.
+- We trained the first volatility prediction model.
+- We evaluated the model using MAE and RMSE.
 
 ---
 
-## Week 6: Exploratory Data Analysis
+## Week 6: Portfolio Optimization and Evaluation
 
-**Goal:** Understand the assets and find patterns in the data.
+**Goal:** Use predicted volatility in portfolio construction and compare against baselines.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Support any data fixes discovered during EDA. |
-| EDA Lead | Create EDA visuals: cumulative return chart, volatility comparison, correlation heatmap, and risk-return scatterplot. |
-| Modeling Lead | Review EDA findings and identify how they affect portfolio construction. |
-| Dashboard/Documentation Lead | Add EDA charts and findings to the report/dashboard draft. |
+| Data Lead | Verify that cleaned returns, benchmark data, sector labels, and risk-free rate data are ready for evaluation. |
+| EDA/Feature Lead | Create visuals comparing portfolio allocations, sector exposure, and performance over time. |
+| Modeling Lead | Build equal-weight, historical minimum-volatility, predictive minimum-volatility, maximum-Sharpe, and risk-profile portfolios. Calculate annualized return, volatility, Sharpe ratio, max drawdown, and cumulative return. |
+| Dashboard/Documentation Lead | Build dashboard sections for portfolio allocation, model results, and strategy comparison tables. |
 
 **Standup update examples:**
 
-- We created the main EDA charts.
-- We found which assets were most volatile and most correlated.
-- We started connecting EDA findings to portfolio strategy.
+- We connected predicted volatility to the portfolio optimization step.
+- We compared predictive portfolios against equal-weight and benchmark baselines.
+- We calculated the main portfolio evaluation metrics.
 
 ---
 
-## Week 7: Portfolio Modeling
+## Week 7: Dashboard Build
 
-**Goal:** Build the first working portfolio strategies.
+**Goal:** Build the first usable dashboard version for exploring model and portfolio results.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Make sure the model input data is clean and reusable. |
-| EDA Lead | Help interpret how the portfolio allocations relate to the data patterns. |
-| Modeling Lead | Build equal-weight, minimum-volatility, maximum-Sharpe, and risk-profile portfolios. |
-| Dashboard/Documentation Lead | Start adding portfolio allocation outputs to the dashboard. |
+| Data Lead | Make sure final data files load correctly into the dashboard. |
+| EDA/Feature Lead | Prepare clean charts for returns, risk, correlations, and sector/category exposure. |
+| Modeling Lead | Prepare model and portfolio result tables for dashboard display. |
+| Dashboard/Documentation Lead | Build dashboard sections for inputs, portfolio allocation, model results, strategy comparison, and project explanation. |
 
 **Standup update examples:**
 
-- We built the equal-weight portfolio.
-- We built the first optimized portfolio models.
-- We started showing portfolio allocations in the dashboard.
+- We built the first working dashboard version.
+- We added charts and tables for portfolio comparison.
+- We connected the final data/model outputs to the dashboard.
 
 ---
 
-## Week 8: Evaluation and Visualization
+## Week 8: Report and Project Polish
 
-**Goal:** Compare portfolio strategies and make the results understandable.
-
-| Team Member | Tasks |
-|---|---|
-| Data Lead | Verify that benchmark data is included correctly. |
-| EDA Lead | Create comparison visuals for portfolio performance over time. |
-| Modeling Lead | Calculate evaluation metrics: annualized return, volatility, Sharpe ratio, max drawdown, and cumulative return. |
-| Dashboard/Documentation Lead | Build dashboard sections for strategy comparison and metric tables. |
-
-**Standup update examples:**
-
-- We compared the portfolio strategies against a benchmark.
-- We calculated the main performance metrics.
-- We added comparison visuals to the dashboard.
-
----
-
-## Week 9: Dashboard, Report, and Polish
-
-**Goal:** Turn the analysis into a polished final product.
+**Goal:** Polish the dashboard, report, README, and project narrative.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Clean up data files and make sure the project can be rerun. |
-| EDA Lead | Finalize EDA findings and choose the strongest charts for the report. |
-| Modeling Lead | Finalize model explanations, assumptions, and limitations. |
-| Dashboard/Documentation Lead | Polish the Streamlit dashboard, README, and final report draft. |
+| Data Lead | Clean up data files, scripts, and folders so the project is easy to rerun. |
+| EDA/Feature Lead | Finalize the strongest EDA and feature visuals for the report and presentation. |
+| Modeling Lead | Finalize model results, portfolio comparison results, assumptions, and limitations. |
+| Dashboard/Documentation Lead | Polish the dashboard, README, final report draft, and presentation outline. |
 
 **Standup update examples:**
 
-- We cleaned up the repo and data files.
-- We finalized the main charts and model results.
+- We cleaned up the repo and data pipeline.
+- We finalized the main charts, model results, and portfolio comparison.
 - We polished the dashboard and report draft.
 
 ---
 
-## Week 10: Final Presentation and Submission
+## Week 9: Final Presentation Preparation
 
-**Goal:** Finish the dashboard, report, and presentation.
+**Goal:** Prepare the dashboard demo, report, slides, and final explanation for each project area.
 
 | Team Member | Tasks |
 |---|---|
-| Data Lead | Prepare a short explanation of the dataset and preprocessing. |
-| EDA Lead | Prepare a short explanation of the main EDA findings. |
-| Modeling Lead | Prepare a short explanation of the portfolio models and evaluation results. |
-| Dashboard/Documentation Lead | Prepare the final dashboard demo and organize final submission materials. |
+| Data Lead | Prepare a short explanation of the data sources, cleaning, preprocessing, and integration decisions. |
+| EDA/Feature Lead | Prepare a short explanation of the feature engineering and EDA findings. |
+| Modeling Lead | Prepare a short explanation of the predictive model, portfolio optimization, evaluation metrics, and limitations. |
+| Dashboard/Documentation Lead | Prepare the final dashboard demo, final report, final slides, and submission checklist. |
 
 **Standup update examples:**
 
-- We finalized the dashboard.
-- We completed the report and slides.
+- We finalized the dashboard demo plan.
+- We completed the final report and slides.
 - Each person prepared their section for the final presentation.
+
+---
+
+## Week 10: Final Submission and Buffer
+
+**Goal:** Finish any last fixes, rehearse the presentation, and submit the final project.
+
+| Team Member | Tasks |
+|---|---|
+| Data Lead | Double-check that the final data files and notebooks are reproducible. |
+| EDA/Feature Lead | Double-check final charts and make sure they match the report/dashboard narrative. |
+| Modeling Lead | Double-check final model and portfolio results, assumptions, and limitations. |
+| Dashboard/Documentation Lead | Submit the final dashboard, report, slides, README, and any required class materials. |
+
+**Standup update examples:**
+
+- We fixed final issues from review or rehearsal.
+- We submitted the final project materials.
+- We confirmed the repo is clean and easy to understand.
 
 ---
 
@@ -216,11 +221,15 @@ Roles can rotate if needed, but each person should own one main area so the work
 
 By the end of the project, the team should have:
 
-- Cleaned historical asset price dataset
+- Raw and cleaned market data
+- Sector data for diversification analysis
+- Risk-free rate data for Sharpe ratio calculations
+- Feature-engineered modeling dataset
 - EDA notebook or script
-- Portfolio modeling notebook or script
-- Evaluation metrics and comparison results
-- Streamlit dashboard
+- Volatility prediction model
+- Portfolio optimization notebook or script
+- Evaluation metrics for predictive model and portfolio strategies
+- Streamlit dashboard or interactive dashboard
 - Final README/documentation
 - Final report
 - Final presentation slides
@@ -235,4 +244,3 @@ Each person should be able to answer:
 2. What did I finish or make progress on?
 3. What am I working on next?
 4. Am I blocked by anything?
-

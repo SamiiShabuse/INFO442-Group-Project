@@ -1,14 +1,25 @@
 # Dashboard Folder
 
-This folder is for the interactive dashboard.
+This folder is reserved for the interactive dashboard, likely built with Streamlit.
 
-Use this folder for files related to the Streamlit app, such as:
+The dashboard should use the cleaned project outputs from `data/processed/`, especially:
 
-- The main dashboard app file
+- `data/processed/integrated/`
+- `data/processed/features/`
+- `data/processed/modeling/`
+
+## What Belongs Here
+
+- Main Streamlit app file
 - Dashboard pages or components
-- Dashboard-specific charts
-- Helper files used only by the dashboard
+- Dashboard-specific chart code
+- Dashboard-specific helper files
 
-The dashboard should let users explore portfolio allocations, risk metrics, performance comparisons, correlation charts, and backtest results.
+## What Does Not Belong Here
 
-We will keep core data cleaning, modeling, and portfolio logic in `src/` when possible, then import it into the dashboard.
+- Raw source data
+- Notebook experiments
+- General-purpose modeling or cleaning logic
+- Final written reports or slides
+
+Reusable logic should go in `src/` when possible, then be imported by the dashboard. This keeps the dashboard focused on interaction and presentation.

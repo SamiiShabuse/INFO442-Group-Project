@@ -15,4 +15,12 @@ We will try to keep raw data and cleaned data separate when possible. For exampl
 - `raw/` for original downloaded files
 - `processed/` for cleaned or feature-ready files
 
+Within `processed/`, source-specific cleaned files live under `source_data/`:
+
+- `processed/source_data/yfinance/`
+- `processed/source_data/wikipedia/`
+- `processed/source_data/fred/`
+
+Project-level outputs such as integrated datasets, feature-engineered datasets, and model results live directly under `processed/` in their own folders.
+
 Do not put notebooks, code, reports, or dashboard files in this folder.

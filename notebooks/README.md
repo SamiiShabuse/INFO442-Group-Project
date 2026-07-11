@@ -1,16 +1,22 @@
 # Notebooks Folder
 
-This folder is for Jupyter notebooks used during analysis.
+This folder is organized by the project pipeline.
 
-Use notebooks for work like:
+## Folder Structure
 
-- Testing data collection with `yfinance`
-- Exploring the data
-- Creating EDA charts
-- Trying feature engineering ideas
-- Testing portfolio optimization methods
-- Checking model results before moving code into `src/`
+- `01_source_data/`
+  - `fred/`
+  - `wikipedia/`
+  - `yfinance/`
+- `02_integration/`
+- `03_features/`
+- `04_modeling/`
 
-We can put our notebooks in here that are good for experimenting and explaining your thought process. If code becomes important and reusable, move it into the `src/` folder so the project is easier to run.
+## Pipeline Order
 
-Then at end of project we can clean up notebooks to be more professional.
+1. Run the source-specific notebooks in `01_source_data/` to acquire, clean, and explore each data source.
+2. Run `02_integration/01_data_integration.ipynb` to combine the cleaned source data.
+3. Run `03_features/01_feature_engineering.ipynb` to create the model-ready dataset.
+4. Run the notebooks in `04_modeling/` to train and compare models.
+
+If code becomes important and reusable, move it into the `src/` folder so the project is easier to rerun and share.

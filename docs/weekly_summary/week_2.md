@@ -1,4 +1,4 @@
-# Week 1 Summary — [6/29 - 7/5]
+# Week 2 Summary — [6/29 - 7/5]
 
 **Project:** Stock Market Analysis & Portfolio Optimization   
 **Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse  

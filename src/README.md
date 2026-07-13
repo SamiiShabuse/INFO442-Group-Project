@@ -1,16 +1,26 @@
 # Source Code Folder
 
-This folder is for reusable project code.
+This folder is for reusable Python code that supports the notebooks and dashboard.
 
-Put Python scripts and helper functions here, such as:
+Right now, most project logic still lives in notebooks. As the project matures, repeated or important logic should move here so it can be imported and reused.
 
-- Data collection scripts
-- Data cleaning and preprocessing functions
-- Feature engineering code
+## What Belongs Here
+
+- Data loading helpers
+- Cleaning and preprocessing functions
+- Feature engineering functions
+- Model training and evaluation helpers
 - Portfolio optimization functions
-- Model training and evaluation code
-- Utility functions used by notebooks or the dashboard
+- Shared plotting or metric utilities
+- Code used by both notebooks and the dashboard
 
-The goal is to keep important project logic here instead of only inside notebooks. This makes the project cleaner, easier to rerun, and easier for teammates to share.
+## What Does Not Belong Here
 
-Should also look for opportunities to make code more modular and reusable.
+- Raw or processed datasets
+- Notebook-only scratch work
+- Final reports or slides
+- Dashboard app files that are only used by Streamlit
+
+## Intended Relationship With Notebooks
+
+Notebooks in `notebooks/` should explain and run the workflow. Shared implementation details should eventually live in `src/`, then be imported into notebooks and the dashboard.

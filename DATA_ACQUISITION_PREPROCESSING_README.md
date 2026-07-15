@@ -6,6 +6,8 @@ This document summarizes how our team acquired and cleaned the data used in this
 
 **Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse
 
+**Repository:** https://github.com/SamiiShabuse/INFO442-Group-Project
+
 Our project pulls data from three sources:
 
 | Data Source | Notebooks Location |

@@ -1,4 +1,4 @@
-# Week 3 Summary — [7/13 - 7/19]
+# Week 4 Summary — [7/13 - 7/19]
 
 **Project:** Stock Market Analysis & Portfolio Optimization   
 **Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse  

@@ -1,0 +1,3 @@
+model,MAE,RMSE,R2,source_folder,scope
+"GARCH(1,1)",0.0038151003240753,0.0060269857037231,-0.1736995572199329,garch_spy_only,SPY only
+Baseline: rolling_volatility_20d,0.0040175238223508,0.0066275059886533,-0.4192433756084943,garch_spy_only,SPY only

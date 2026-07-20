@@ -8,5 +8,6 @@ scipy
 streamlit
 yfinance
 pandas-datareader
+arch
 jupyter
 notebook

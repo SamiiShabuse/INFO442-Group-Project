@@ -1,0 +1,6 @@
+model,MAE,RMSE,R2,source_folder,scope
+Gradient Boosting,0.0041125789289306,0.0060476609926828,0.2816817552283734,gradient_boosting,All tickers
+Random Forest (tuned),0.0040623605043445,0.006517433525385,0.1657518714038176,random_forest,All tickers
+Baseline: rolling_volatility_20d,0.0046471957325684,0.007130185107893,0.0015102059479311,linear_regression,All tickers
+Ridge Regression,0.0051028539657793,0.007451505760737,-0.0905111330140142,ridge_regression,All tickers
+Linear Regression,0.0051072188197488,0.0074556584789829,-0.0917269536852734,linear_regression,All tickers

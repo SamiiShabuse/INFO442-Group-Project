@@ -95,9 +95,9 @@ if page == "Overview":
         sector (Wikipedia), and macroeconomic (FRED) data.
 
         **Use the sidebar to navigate:**
-        - **Model Comparison** — how our 4 volatility prediction models (+ GARCH baseline) stack up
-        - **Prediction Explorer** — see predicted vs. actual volatility for any model/ticker
-        - **Portfolio Strategies** — compare portfolio construction approaches on the 2024+ test period
+        - **Model Comparison** - how our 4 volatility prediction models (+ GARCH baseline) stack up
+        - **Prediction Explorer** - see predicted vs. actual volatility for any model/ticker
+        - **Portfolio Strategies** - compare portfolio construction approaches on the 2024+ test period
         """
     )
 
@@ -107,12 +107,11 @@ if page == "Overview":
         best_model_row = all_ticker.sort_values("RMSE").iloc[0]
         col1.metric("Best Model (by RMSE)", best_model_row["model"])
         col2.metric("Best RMSE", f"{best_model_row['RMSE']:.5f}")
-        col3.metric("Best R²", f"{best_model_row['R2']:.3f}")
+        col3.metric("Best R2", f"{best_model_row['R2']:.3f}")
     except FileNotFoundError:
         st.warning(
-            "Model comparison files not found. Make sure this app runs from a location "
-            "where `../../data/processed/model_comparison/` resolves correctly, or update "
-            "DATA_ROOT at the top of app.py."
+            "Model comparison files were not found. Expected "
+            "`data/processed/model_comparison/` under the project root."
         )
 
 # ============================================================
@@ -145,10 +144,11 @@ elif page == "Model Comparison":
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    best_model_row = all_ticker.sort_values("RMSE").iloc[0]
     st.caption(
-        "Gradient Boosting currently has the lowest RMSE and highest R2 among the "
-        "all-ticker models, making it the strongest predictive model after adding "
-        "the expanded FRED macro features."
+        f"{best_model_row['model']} currently has the lowest RMSE and highest R2 "
+        "among the all-ticker models, making it the strongest predictive model "
+        "after feature selection."
     )
 
     st.subheader("GARCH (SPY-Only Statistical Model)")
@@ -203,7 +203,7 @@ elif page == "Prediction Explorer":
         name=f"{model_name} Prediction", line=dict(color="crimson", dash="dash"),
     ))
     fig.update_layout(
-        title=f"{model_name} — Predicted vs. Actual Volatility ({ticker})",
+        title=f"{model_name} - Predicted vs. Actual Volatility ({ticker})",
         xaxis_title="Date", yaxis_title="20-Day Volatility",
     )
     st.plotly_chart(fig, use_container_width=True)

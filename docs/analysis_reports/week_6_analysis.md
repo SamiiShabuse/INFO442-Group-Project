@@ -135,16 +135,16 @@ The tradeoff is:
 - Random Forest gets the most benefit from the selected feature set, but it also takes much longer to train.
 - Gradient Boosting is slightly less accurate than Random Forest, but trains much faster.
 
-## Decision / Next Step
+## Final Decision
 
 The selected feature list is now connected to the main tabular modeling notebooks, so feature selection is the single source of truth for Linear Regression, Ridge Regression, Random Forest, and Gradient Boosting.
 
-Recommended next steps:
+Final modeling direction:
 
 - Keep Random Forest tuned as the current best predictive model.
 - Keep Gradient Boosting as a strong backup model because it is faster and still performs well.
 - Keep GARCH separate because it is SPY-only and not directly comparable to the all-ticker models.
 - Use the refreshed portfolio optimization results when discussing final portfolio strategy performance.
-- Update the dashboard wording so it reflects Random Forest as the current best all-ticker model.
+- Use the updated dashboard to show model comparison, prediction explorer charts, and portfolio strategy results.
 
 This gives us a clearer final project story: FRED macro data was useful, feature selection made it more reliable, and Random Forest became the strongest volatility model after the selected feature list was connected and the notebooks were rerun.

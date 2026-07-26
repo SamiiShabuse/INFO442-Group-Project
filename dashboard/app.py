@@ -2,9 +2,7 @@
 Portfolio Optimization & Risk Analytics Dashboard
 INFO 442 Group Project
 
-Run with: streamlit run app.py
-(from the notebooks/04_modeling/ folder, or adjust DATA_ROOT below to match
-wherever this file lives relative to data/processed/)
+Run with: streamlit run dashboard/app.py
 """
 
 import streamlit as st
@@ -15,10 +13,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # ============================================================
-# PATHS - adjust DATA_ROOT if you place this file somewhere
-# other than notebooks/04_modeling/ or notebooks/dashboard/
+# PATHS
 # ============================================================
-DATA_ROOT = Path("../data/processed")
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
+DATA_ROOT = PROJECT_ROOT / "data" / "processed"
 MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
 MODELING_PATH = DATA_ROOT / "modeling"
 PORTFOLIO_PATH = DATA_ROOT / "portfolio"  # placeholder - adjust once Samii confirms actual folder name

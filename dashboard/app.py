@@ -46,6 +46,17 @@ def load_predictions(model_folder):
     return df
 
 
+def get_prediction_column(predictions):
+    prediction_columns = [c for c in predictions.columns if c.endswith("_prediction")]
+    if prediction_columns:
+        return prediction_columns[0]
+
+    if "predicted_future_volatility_20d" in predictions.columns:
+        return "predicted_future_volatility_20d"
+
+    raise ValueError("No prediction column found in test_predictions.csv")
+
+
 @st.cache_data
 def load_portfolio_data():
     try:
@@ -169,7 +180,17 @@ elif page == "Prediction Explorer":
     tickers = sorted(preds["ticker"].unique())
     ticker = st.selectbox("Choose a ticker", tickers)
 
-    pred_col = [c for c in preds.columns if c.endswith("_prediction")][0]
+    try:
+        pred_col = get_prediction_column(preds)
+    except ValueError as error:
+        st.error(str(error))
+        st.stop()
+
+    if "absolute_error" not in preds.columns:
+        preds["absolute_error"] = (
+            preds["future_volatility_20d"] - preds[pred_col]
+        ).abs()
+
     ticker_df = preds[preds["ticker"] == ticker].sort_values("Date")
 
     fig = go.Figure()

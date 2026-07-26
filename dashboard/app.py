@@ -125,8 +125,8 @@ elif page == "Model Comparison":
         all_ticker, garch = load_model_comparison()
     except FileNotFoundError:
         st.error(
-            "Could not find model_comparison CSVs. Check that DATA_ROOT at the top "
-            "of app.py points to the right data/processed folder."
+            "Model comparison files were not found. Expected "
+            "`data/processed/model_comparison/` under the project root."
         )
         st.stop()
 

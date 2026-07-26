@@ -1,25 +1,30 @@
-# Dashboard Folder
+# Dashboard
 
-This folder is reserved for the interactive dashboard, likely built with Streamlit.
+This folder contains the Streamlit dashboard for the project.
 
-The dashboard should use the cleaned project outputs from `data/processed/`, especially:
+Run it from the project root with:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+The dashboard uses cleaned project outputs from `data/processed/`, especially:
 
 - `data/processed/integrated/`
 - `data/processed/features/`
 - `data/processed/modeling/`
+- `data/processed/model_comparison/`
+- `data/processed/portfolio_optimization/`
 
-## What Belongs Here
+## Current Pages
 
-- Main Streamlit app file
-- Dashboard pages or components
-- Dashboard-specific chart code
-- Dashboard-specific helper files
+- Overview
+- Model Comparison
+- Prediction Explorer
+- Portfolio Strategies
 
-## What Does Not Belong Here
+## Notes
 
-- Raw source data
-- Notebook experiments
-- General-purpose modeling or cleaning logic
-- Final written reports or slides
+Install dashboard dependencies with `pip install -r dashboard/requirements.txt` if Streamlit or Plotly is missing.
 
-Reusable logic should go in `src/` when possible, then be imported by the dashboard. This keeps the dashboard focused on interaction and presentation.
+The dashboard should stay focused on presentation and interaction. Data cleaning, feature engineering, modeling, and portfolio optimization should continue to live in the notebooks and processed output files.

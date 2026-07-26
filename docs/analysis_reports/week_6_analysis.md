@@ -1,23 +1,24 @@
 # Week 6 Analysis: Training Time Tracking and Feature Selection
 
 **Project:** Stock Market Analysis & Portfolio Optimization
-**Date:** July 25, 2026
+**Date:** July 26, 2026
 
 ## Main Question
 
-After the professor's feedback, we wanted to make the modeling work more complete and easier to explain.
+After the professor's feedback, we focused on making the modeling pipeline easier to explain and more defensible.
 
 The main goals were:
 
-- Add training time periods and training run timestamps to the modeling outputs.
-- Add feature importance and feature selection before deciding which columns should stay in the models.
-- Test whether the expanded FRED macro data helps when all columns are included, or whether only selected columns are useful.
+- Add training periods and training timestamps to the model outputs.
+- Add feature selection before modeling.
+- Connect the selected feature list back into the modeling notebooks.
+- Rerun the models and portfolio optimization so the final outputs use the updated feature set.
 
 ## What Changed
 
-The modeling notebooks now track more information about when and how each model was trained.
+The modeling notebooks now track the time period and runtime information for each model.
 
-The model outputs now include:
+The model outputs include:
 
 | Column | Meaning |
 | --- | --- |
@@ -32,106 +33,69 @@ The model outputs now include:
 | `training_end_timestamp` | Timestamp for when model training ended. |
 | `training_duration_seconds` | How long the model took to train. |
 
-This makes the modeling results easier to audit because we can explain what time period each model learned from, what time period it was tested on, and how long each training run took.
+This makes the model results easier to audit because we can explain what dates each model learned from, what dates it was tested on, and how long each training run took.
 
-## Feature Selection Notebook
+## Feature Selection Connection
 
-We added a new notebook:
+The feature selection work now produces a shared selected feature file:
 
-- `notebooks/04_modeling/06_feature_selection_experiments.ipynb`
+- `data/processed/features/selected_features.csv`
 
-This notebook compares different feature groups across multiple models:
-
-- Market-only features
-- Full macro features
-- Selected macro features
-- SelectKBest features
-- Mutual information top features
-- Lasso-selected features
-- Random Forest top features
-
-The models tested were:
+The following modeling notebooks now load that file instead of using separate hardcoded feature lists:
 
 - Linear Regression
 - Ridge Regression
 - Random Forest
 - Gradient Boosting
 
-## Feature Selection Results
+GARCH was not changed because it is a SPY-only statistical volatility model and does not use the tabular feature columns.
 
-The best results came from using the market features plus a smaller selected set of FRED macro features.
+## Selected Features
 
-| Model | Feature Set | Main Takeaway |
-| --- | --- | --- |
-| Linear Regression | Selected macro | Best overall result in this experiment. |
-| Ridge Regression | Selected macro | Performed almost the same as Linear Regression. |
-| Linear Regression | SelectKBest | Strong result with fewer features. |
-| Ridge Regression | SelectKBest | Similar to Linear Regression with SelectKBest. |
-| Random Forest | SelectKBest | Best Random Forest result in this notebook. |
-| Gradient Boosting | Full macro | Best Gradient Boosting result, but not the best overall result. |
+The final selected feature list keeps 17 features.
 
-The selected macro feature set kept:
+Selected market features:
 
-- `vix`
-- `yield_curve_spread`
-- `is_inverted`
-- `unemployment_rate_pct`
-- `cpi_pct_change`
-
-## Feature Importance Findings
-
-The feature importance results showed that recent volatility-related market features are still very important.
-
-Important market features included:
-
-- `rolling_volatility_20d`
-- `rolling_squared_return_20d`
+- `return_lag_1`
+- `return_lag_5`
+- `rolling_return_5d`
+- `rolling_return_20d`
+- `abs_return`
+- `squared_return`
 - `rolling_abs_return_20d`
 - `rolling_volatility_5d`
+- `price_to_moving_avg_20d`
 
-Important macro features included:
+Selected FRED macro features:
 
 - `vix`
-- `risk_free_rate_decimal`
-- `cpi_pct_change`
+- `treasury_10yr_pct`
 - `yield_curve_spread`
+- `is_inverted`
 - `fed_funds_rate_pct`
 - `unemployment_rate_pct`
+- `recession_flag`
+- `cpi_pct_change`
 
-This means the FRED data does help, but it works best when we choose the most useful macro signals instead of automatically keeping every macro column.
+Features dropped by feature selection included redundant or raw-level columns such as `rolling_volatility_20d`, `rolling_squared_return_20d`, `risk_free_rate_decimal`, `moving_avg_20d`, and `cpi_index`.
 
-## Interpretation
+## Model Results After Connecting Selected Features
 
-The main finding is that more columns do not always mean a better model.
+After connecting `selected_features.csv` into the modeling notebooks, we reran all models and reran the model comparison notebook.
 
-The expanded FRED data is useful because it gives the models extra economic context, such as market fear, interest rates, inflation, unemployment, and recession signals. However, adding every macro column at once can also add noise or repeated information.
+| Model | MAE | RMSE | R2 | Training Duration |
+| --- | ---: | ---: | ---: | ---: |
+| Random Forest tuned | 0.003741 | 0.005802 | 0.3390 | 38.90 sec |
+| Gradient Boosting | 0.004113 | 0.005946 | 0.3055 | 1.69 sec |
+| Baseline: rolling volatility | 0.004647 | 0.007130 | 0.0015 | N/A |
+| Ridge Regression | 0.005362 | 0.007763 | -0.1837 | 0.08 sec |
+| Linear Regression | 0.005363 | 0.007764 | -0.1839 | 0.01 sec |
 
-Some macro variables are related to each other, especially the interest-rate features. If the model receives too many similar macro columns, it may become harder for the model to separate useful signal from redundant information.
+The current best all-ticker model is Random Forest tuned. It has the lowest RMSE and highest R2 after the selected feature list was connected.
 
-The tradeoff is:
+## Training and Test Period
 
-- Full macro features give the model the most information, but they can increase noise and complexity.
-- Selected macro features give the model less information, but the information is cleaner and more focused.
-- Market-only features are simpler and still strong, but they miss useful economic context.
-
-Based on the Week 6 experiments, the best direction is to keep the selected macro features instead of using every FRED column in the final model.
-
-## Decision / Next Step
-
-The next step should be to update the main modeling notebooks so they use the selected macro feature set consistently.
-
-Recommended final feature direction:
-
-- Keep the original market volatility and return features.
-- Keep selected macro indicators like `vix`, `yield_curve_spread`, `is_inverted`, `unemployment_rate_pct`, and `cpi_pct_change`.
-- Be careful with using every interest-rate column together because some of them may be redundant.
-- Continue reporting training periods, timestamps, and training duration in the model result files.
-
-This gives us a stronger project story: the FRED data helped, but feature selection was needed to decide which macro columns actually improved the models.
-
-## Numbers to Show Professor
-
-The feature selection notebook used the same time-based split as the main modeling notebooks.
+The updated model comparison used the same time-based split as before.
 
 | Item | Value |
 | --- | --- |
@@ -141,34 +105,46 @@ The feature selection notebook used the same time-based split as the main modeli
 | Training rows | 31,269 |
 | Test rows | 10,101 |
 
-The strongest model results from the feature selection notebook were:
+## Portfolio Results After Model Rerun
 
-| Model | Feature Set | Number of Features | RMSE | R2 |
-| --- | --- | ---: | ---: | ---: |
-| Linear Regression | Selected macro | 17 | 0.005929 | 0.3096 |
-| Ridge Regression | Selected macro | 17 | 0.005930 | 0.3095 |
-| Linear Regression | SelectKBest | 10 | 0.005971 | 0.2999 |
-| Ridge Regression | SelectKBest | 10 | 0.005971 | 0.2998 |
-| Random Forest | SelectKBest | 10 | 0.005971 | 0.2998 |
-| Linear Regression | Market only | 12 | 0.005985 | 0.2965 |
-| Gradient Boosting | Full macro | 21 | 0.006058 | 0.2791 |
+Because the Random Forest predictions changed after feature selection, we reran the portfolio optimization notebook too.
 
-The clearest comparison is that selected macro features performed better than using every macro feature.
+| Strategy | Annualized Return | Annualized Volatility | Sharpe Ratio | Max Drawdown | Cumulative Return |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Historical Max Sharpe | 0.2669 | 0.1371 | 1.6042 | -0.1223 | 0.6682 |
+| RF Predictive Max Sharpe | 0.2713 | 0.1526 | 1.4701 | -0.1539 | 0.6755 |
+| Historical Min Vol | 0.1521 | 0.0764 | 1.3754 | -0.0615 | 0.3451 |
+| Equal Weight | 0.1737 | 0.1054 | 1.2025 | -0.1057 | 0.3968 |
+| RF Predictive Min Vol | 0.1297 | 0.0753 | 1.0989 | -0.0635 | 0.2868 |
+| SPY Benchmark | 0.2109 | 0.1637 | 1.0015 | -0.1876 | 0.4811 |
 
-| Model | Feature Set | RMSE | R2 |
-| --- | --- | ---: | ---: |
-| Linear Regression | Selected macro | 0.005929 | 0.3096 |
-| Linear Regression | Full macro | 0.007466 | -0.0948 |
-| Ridge Regression | Selected macro | 0.005930 | 0.3095 |
-| Ridge Regression | Full macro | 0.007457 | -0.0922 |
-| Random Forest | SelectKBest | 0.005971 | 0.2998 |
-| Random Forest | Full macro | 0.006912 | 0.0617 |
+The RF Predictive Max Sharpe portfolio now has the highest annualized return and cumulative return. However, Historical Max Sharpe still has the highest Sharpe ratio, meaning it had the best risk-adjusted performance.
 
-Top feature ranking examples:
+## Interpretation
 
-| Method | Top Features |
-| --- | --- |
-| Mutual information | `rolling_volatility_20d`, `rolling_squared_return_20d`, `rolling_abs_return_20d`, `cpi_pct_change`, `fed_funds_rate_pct` |
-| Random Forest importance | `rolling_abs_return_20d`, `risk_free_rate_decimal`, `cpi_pct_change`, `vix`, `yield_curve_spread` |
+The main finding is that the expanded FRED data helps, but it should not be used blindly. Feature selection helped us avoid keeping every macro column just because it was available.
 
-These numbers support the conclusion that the FRED data helps, but the full macro feature set is not the best final choice. The selected macro features keep the useful economic context while avoiding some of the noise and redundancy from using every macro column.
+The selected feature list improved the tree-based models most clearly. Random Forest became the strongest all-ticker volatility model after using the selected feature list, and Gradient Boosting also remained stronger than the baseline.
+
+Linear Regression and Ridge Regression still performed worse than the baseline. This suggests that the relationship between market features, macro features, and future volatility is probably not simple enough for a linear model to capture well.
+
+The tradeoff is:
+
+- Full macro data gives the model more information, but it can add noise and redundancy.
+- Selected features reduce noise and make the model easier to explain.
+- Random Forest gets the most benefit from the selected feature set, but it also takes much longer to train.
+- Gradient Boosting is slightly less accurate than Random Forest, but trains much faster.
+
+## Decision / Next Step
+
+The selected feature list is now connected to the main tabular modeling notebooks, so feature selection is the single source of truth for Linear Regression, Ridge Regression, Random Forest, and Gradient Boosting.
+
+Recommended next steps:
+
+- Keep Random Forest tuned as the current best predictive model.
+- Keep Gradient Boosting as a strong backup model because it is faster and still performs well.
+- Keep GARCH separate because it is SPY-only and not directly comparable to the all-ticker models.
+- Use the refreshed portfolio optimization results when discussing final portfolio strategy performance.
+- Update the dashboard wording so it reflects Random Forest as the current best all-ticker model.
+
+This gives us a clearer final project story: FRED macro data was useful, feature selection made it more reliable, and Random Forest became the strongest volatility model after the selected feature list was connected and the notebooks were rerun.

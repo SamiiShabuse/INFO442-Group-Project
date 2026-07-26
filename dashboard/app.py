@@ -20,7 +20,7 @@ PROJECT_ROOT = APP_DIR.parent
 DATA_ROOT = PROJECT_ROOT / "data" / "processed"
 MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
 MODELING_PATH = DATA_ROOT / "modeling"
-PORTFOLIO_PATH = DATA_ROOT / "portfolio"  # placeholder - adjust once Samii confirms actual folder name
+PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
 
 st.set_page_config(
     page_title="Portfolio Optimization Dashboard",
@@ -48,15 +48,8 @@ def load_predictions(model_folder):
 
 @st.cache_data
 def load_portfolio_data():
-    """
-    Placeholder loader - update the filename(s) below once you have
-    Samii's actual saved portfolio output file(s). Expected shape based
-    on the weekly summary: one row per strategy with columns like
-    strategy, annualized_return, annualized_volatility, sharpe_ratio,
-    max_drawdown, cumulative_return.
-    """
     try:
-        return pd.read_csv(PORTFOLIO_PATH / "portfolio_strategy_metrics.csv")
+        return pd.read_csv(PORTFOLIO_PATH / "portfolio_performance_metrics.csv")
     except FileNotFoundError:
         return None
 
@@ -209,13 +202,8 @@ elif page == "Portfolio Strategies":
 
     if portfolio_df is None:
         st.warning(
-            "Portfolio output file not found yet. This page is a placeholder built to match "
-            "the strategies mentioned in the Week 4 summary: Equal-Weight, Historical Min-Vol, "
-            "Historical Max-Sharpe, RF-Predictive Min-Vol, and RF-Predictive Max-Sharpe.\n\n"
-            "Once Samii's portfolio optimization notebook output is available, update "
-            "PORTFOLIO_PATH and the filename in `load_portfolio_data()` at the top of this file "
-            "to point to the real CSV (expected columns: strategy, annualized_return, "
-            "annualized_volatility, sharpe_ratio, max_drawdown, cumulative_return)."
+            "Portfolio performance metrics were not found. Expected "
+            "`data/processed/portfolio_optimization/portfolio_performance_metrics.csv`."
         )
     else:
         st.dataframe(portfolio_df, use_container_width=True)

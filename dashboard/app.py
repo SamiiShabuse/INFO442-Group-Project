@@ -2,9 +2,7 @@
 Portfolio Optimization & Risk Analytics Dashboard
 INFO 442 Group Project
 
-Run with: streamlit run app.py
-(from the notebooks/04_modeling/ folder, or adjust DATA_ROOT below to match
-wherever this file lives relative to data/processed/)
+Run with: streamlit run dashboard/app.py
 """
 
 import streamlit as st
@@ -15,13 +13,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # ============================================================
-# PATHS - adjust DATA_ROOT if you place this file somewhere
-# other than notebooks/04_modeling/ or notebooks/dashboard/
+# PATHS
 # ============================================================
-DATA_ROOT = Path("../data/processed")
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
+DATA_ROOT = PROJECT_ROOT / "data" / "processed"
 MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
 MODELING_PATH = DATA_ROOT / "modeling"
-PORTFOLIO_PATH = DATA_ROOT / "portfolio"  # placeholder - adjust once Samii confirms actual folder name
+PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
 
 st.set_page_config(
     page_title="Portfolio Optimization Dashboard",
@@ -47,17 +46,21 @@ def load_predictions(model_folder):
     return df
 
 
+def get_prediction_column(predictions):
+    prediction_columns = [c for c in predictions.columns if c.endswith("_prediction")]
+    if prediction_columns:
+        return prediction_columns[0]
+
+    if "predicted_future_volatility_20d" in predictions.columns:
+        return "predicted_future_volatility_20d"
+
+    raise ValueError("No prediction column found in test_predictions.csv")
+
+
 @st.cache_data
 def load_portfolio_data():
-    """
-    Placeholder loader - update the filename(s) below once you have
-    Samii's actual saved portfolio output file(s). Expected shape based
-    on the weekly summary: one row per strategy with columns like
-    strategy, annualized_return, annualized_volatility, sharpe_ratio,
-    max_drawdown, cumulative_return.
-    """
     try:
-        return pd.read_csv(PORTFOLIO_PATH / "portfolio_strategy_metrics.csv")
+        return pd.read_csv(PORTFOLIO_PATH / "portfolio_performance_metrics.csv")
     except FileNotFoundError:
         return None
 
@@ -92,9 +95,9 @@ if page == "Overview":
         sector (Wikipedia), and macroeconomic (FRED) data.
 
         **Use the sidebar to navigate:**
-        - **Model Comparison** — how our 4 volatility prediction models (+ GARCH baseline) stack up
-        - **Prediction Explorer** — see predicted vs. actual volatility for any model/ticker
-        - **Portfolio Strategies** — compare portfolio construction approaches on the 2024+ test period
+        - **Model Comparison** - how our 4 volatility prediction models (+ GARCH baseline) stack up
+        - **Prediction Explorer** - see predicted vs. actual volatility for any model/ticker
+        - **Portfolio Strategies** - compare portfolio construction approaches on the 2024+ test period
         """
     )
 
@@ -104,12 +107,11 @@ if page == "Overview":
         best_model_row = all_ticker.sort_values("RMSE").iloc[0]
         col1.metric("Best Model (by RMSE)", best_model_row["model"])
         col2.metric("Best RMSE", f"{best_model_row['RMSE']:.5f}")
-        col3.metric("Best R²", f"{best_model_row['R2']:.3f}")
+        col3.metric("Best R2", f"{best_model_row['R2']:.3f}")
     except FileNotFoundError:
         st.warning(
-            "Model comparison files not found. Make sure this app runs from a location "
-            "where `../../data/processed/model_comparison/` resolves correctly, or update "
-            "DATA_ROOT at the top of app.py."
+            "Model comparison files were not found. Expected "
+            "`data/processed/model_comparison/` under the project root."
         )
 
 # ============================================================
@@ -123,8 +125,8 @@ elif page == "Model Comparison":
         all_ticker, garch = load_model_comparison()
     except FileNotFoundError:
         st.error(
-            "Could not find model_comparison CSVs. Check that DATA_ROOT at the top "
-            "of app.py points to the right data/processed folder."
+            "Model comparison files were not found. Expected "
+            "`data/processed/model_comparison/` under the project root."
         )
         st.stop()
 
@@ -142,10 +144,11 @@ elif page == "Model Comparison":
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    best_model_row = all_ticker.sort_values("RMSE").iloc[0]
     st.caption(
-        "Gradient Boosting currently has the lowest RMSE and highest R2 among the "
-        "all-ticker models, making it the strongest predictive model after adding "
-        "the expanded FRED macro features."
+        f"{best_model_row['model']} currently has the lowest RMSE and highest R2 "
+        "among the all-ticker models, making it the strongest predictive model "
+        "after feature selection."
     )
 
     st.subheader("GARCH (SPY-Only Statistical Model)")
@@ -177,7 +180,17 @@ elif page == "Prediction Explorer":
     tickers = sorted(preds["ticker"].unique())
     ticker = st.selectbox("Choose a ticker", tickers)
 
-    pred_col = [c for c in preds.columns if c.endswith("_prediction")][0]
+    try:
+        pred_col = get_prediction_column(preds)
+    except ValueError as error:
+        st.error(str(error))
+        st.stop()
+
+    if "absolute_error" not in preds.columns:
+        preds["absolute_error"] = (
+            preds["future_volatility_20d"] - preds[pred_col]
+        ).abs()
+
     ticker_df = preds[preds["ticker"] == ticker].sort_values("Date")
 
     fig = go.Figure()
@@ -190,7 +203,7 @@ elif page == "Prediction Explorer":
         name=f"{model_name} Prediction", line=dict(color="crimson", dash="dash"),
     ))
     fig.update_layout(
-        title=f"{model_name} — Predicted vs. Actual Volatility ({ticker})",
+        title=f"{model_name} - Predicted vs. Actual Volatility ({ticker})",
         xaxis_title="Date", yaxis_title="20-Day Volatility",
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -210,13 +223,8 @@ elif page == "Portfolio Strategies":
 
     if portfolio_df is None:
         st.warning(
-            "Portfolio output file not found yet. This page is a placeholder built to match "
-            "the strategies mentioned in the Week 4 summary: Equal-Weight, Historical Min-Vol, "
-            "Historical Max-Sharpe, RF-Predictive Min-Vol, and RF-Predictive Max-Sharpe.\n\n"
-            "Once Samii's portfolio optimization notebook output is available, update "
-            "PORTFOLIO_PATH and the filename in `load_portfolio_data()` at the top of this file "
-            "to point to the real CSV (expected columns: strategy, annualized_return, "
-            "annualized_volatility, sharpe_ratio, max_drawdown, cumulative_return)."
+            "Portfolio performance metrics were not found. Expected "
+            "`data/processed/portfolio_optimization/portfolio_performance_metrics.csv`."
         )
     else:
         st.dataframe(portfolio_df, use_container_width=True)

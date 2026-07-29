@@ -1,4 +1,4 @@
-# Week 5 Summary - [7/27 - 8/2]
+# Week 6 Summary - [7/27 - 8/2]
 
 **Project:** Stock Market Analysis & Portfolio Optimization   
 **Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse  
@@ -13,7 +13,9 @@
 - Verified end-to-end in the browser — asset selection, objective choice, and max-weight constraints all produce a converged portfolio with a live backtest against equal-weight, historical, and SPY — without touching any of the existing dashboard pages or data.
 
 **Joel**
-- 
+- Reviewed the team dashboard and identified two gaps: no way to compare risk appetites without manual tuning, and no visual for the classic risk-return tradeoff.
+- Added risk profile presets (Conservative/Balanced/Aggressive/Custom) to the Live Optimizer page for one-click portfolio configuration instead of manually setting the objective and max weight each time.
+- Built an efficient frontier visualization on the Live Optimizer page, showing where the optimized portfolio sits relative to all achievable risk-return combinations using the RF-predicted risk model. 
 
 **Samii**
 - 

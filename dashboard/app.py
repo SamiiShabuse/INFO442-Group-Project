@@ -13,6 +13,7 @@ import numpy as np
 from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
+from scipy.optimize import minimize
 
 # ============================================================
 # PATHS
@@ -88,6 +89,42 @@ def load_optimizer_inputs():
     risk_free_rate = load_risk_free_rate(INTEGRATED_PATH)
     rf_predicted_vol_matrix = load_rf_predicted_volatility(MODELING_PATH)
     return returns_matrix, risk_free_rate, rf_predicted_vol_matrix
+
+
+def compute_efficient_frontier(mean_returns, covariance_matrix, max_weight, n_points=25):
+    """
+    Builds the efficient frontier by minimizing portfolio volatility for a
+    range of target returns, reusing the same portfolio_return/portfolio_volatility
+    helpers as the rest of the app so units stay consistent with the metrics
+    already shown (e.g. annualized return/volatility).
+    """
+    n_assets = len(mean_returns)
+    bounds = tuple((0, max_weight) for _ in range(n_assets))
+
+    single_asset_returns = [
+        portfolio_return(np.eye(n_assets)[i], mean_returns) for i in range(n_assets)
+    ]
+    target_returns = np.linspace(min(single_asset_returns), max(single_asset_returns), n_points)
+
+    frontier_points = []
+    for target in target_returns:
+        constraints = (
+            {"type": "eq", "fun": lambda w: np.sum(w) - 1},
+            {"type": "eq", "fun": lambda w, target=target: portfolio_return(w, mean_returns) - target},
+        )
+        result = minimize(
+            lambda w: portfolio_volatility(w, covariance_matrix),
+            np.repeat(1 / n_assets, n_assets),
+            method="SLSQP",
+            bounds=bounds,
+            constraints=constraints,
+        )
+        if result.success:
+            frontier_points.append(
+                {"volatility": portfolio_volatility(result.x, covariance_matrix), "return": target}
+            )
+
+    return pd.DataFrame(frontier_points)
 
 
 # ============================================================
@@ -305,10 +342,31 @@ elif page == "Live Optimizer":
 
     selected_assets = st.multiselect("Assets to include", options=all_assets, default=all_assets)
 
+    st.subheader("Risk Profile")
+    RISK_PRESETS = {
+        "Conservative": {"objective_label": "Minimize Volatility", "max_weight": 0.15},
+        "Balanced": {"objective_label": "Maximize Sharpe Ratio", "max_weight": 0.25},
+        "Aggressive": {"objective_label": "Maximize Sharpe Ratio", "max_weight": 0.50},
+    }
+    risk_profile = st.radio(
+        "Choose a preset or customize your own",
+        ["Conservative", "Balanced", "Aggressive", "Custom"],
+        horizontal=True,
+        index=1,
+    )
+
     col1, col2 = st.columns(2)
-    objective_label = col1.radio("Optimization objective", ["Minimize Volatility", "Maximize Sharpe Ratio"])
+    if risk_profile == "Custom":
+        objective_label = col1.radio("Optimization objective", ["Minimize Volatility", "Maximize Sharpe Ratio"])
+        max_weight = col2.slider("Maximum weight per asset", min_value=0.10, max_value=1.0, value=0.25, step=0.05)
+    else:
+        preset = RISK_PRESETS[risk_profile]
+        objective_label = preset["objective_label"]
+        max_weight = preset["max_weight"]
+        col1.info(f"Objective: **{objective_label}**")
+        col2.info(f"Max weight per asset: **{max_weight:.0%}**")
+
     objective = "min_volatility" if objective_label == "Minimize Volatility" else "max_sharpe"
-    max_weight = col2.slider("Maximum weight per asset", min_value=0.10, max_value=1.0, value=0.25, step=0.05)
 
     if st.button("Optimize Portfolio", type="primary"):
         if len(selected_assets) < 2:
@@ -367,6 +425,57 @@ elif page == "Live Optimizer":
                 f"{portfolio_sharpe(rf_weights, mean_returns, rf_covariance_matrix, train_risk_free_rate):.2f}",
             )
             st.caption(f"Risk model uses RF volatility predictions as of {prediction_date.date()}.")
+
+        st.subheader("Efficient Frontier")
+        st.markdown(
+            "Each point on the curve is the lowest-volatility portfolio achievable for "
+            "a given target return, using the same RF-predicted risk model as your "
+            "optimized portfolio above. Your portfolio (star) should sit on or very "
+            "near the curve if the optimizer converged well."
+        )
+
+        with st.spinner("Building efficient frontier..."):
+            frontier_df = compute_efficient_frontier(mean_returns, rf_covariance_matrix, max_weight)
+
+        fig_frontier = go.Figure()
+
+        if not frontier_df.empty:
+            fig_frontier.add_trace(go.Scatter(
+                x=frontier_df["volatility"], y=frontier_df["return"],
+                mode="lines", name="Efficient Frontier", line=dict(color="steelblue", width=3),
+            ))
+
+        fig_frontier.add_trace(go.Scatter(
+            x=[portfolio_volatility(rf_weights, rf_covariance_matrix)],
+            y=[portfolio_return(rf_weights, mean_returns)],
+            mode="markers", name="Your Optimized Portfolio",
+            marker=dict(color="crimson", size=16, symbol="star"),
+        ))
+
+        individual_asset_points = pd.DataFrame({
+            "Asset": selected_assets,
+            "volatility": [
+                portfolio_volatility(np.eye(len(selected_assets))[i], rf_covariance_matrix)
+                for i in range(len(selected_assets))
+            ],
+            "return": [
+                portfolio_return(np.eye(len(selected_assets))[i], mean_returns)
+                for i in range(len(selected_assets))
+            ],
+        })
+        fig_frontier.add_trace(go.Scatter(
+            x=individual_asset_points["volatility"], y=individual_asset_points["return"],
+            mode="markers+text", name="Individual Assets",
+            text=individual_asset_points["Asset"], textposition="top center",
+            marker=dict(color="gray", size=8),
+        ))
+
+        fig_frontier.update_layout(
+            title="Efficient Frontier (RF-Predicted Risk Model)",
+            xaxis_title="Annualized Volatility", yaxis_title="Annualized Return",
+            xaxis_tickformat=".0%", yaxis_tickformat=".0%",
+        )
+        st.plotly_chart(fig_frontier, use_container_width=True)
 
         st.subheader("Backtest on 2024+ Test Period")
         backtest_rows = [

@@ -25,8 +25,6 @@ The EDA work was completed in the existing Jupyter notebooks below. These should
 - `notebooks/01_source_data/wikipedia/03_exploratory_data_analysis_wikipedia.ipynb`
 - `notebooks/01_source_data/fred/03_exploratory_data_analysis_fred.ipynb`
 
-No separate `.py` file was created for this report because the EDA code already exists in these notebooks.
-
 ## General Description of the Data
 
 The main processed datasets used for EDA and downstream modeling are summarized below.

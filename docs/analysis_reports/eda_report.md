@@ -3,6 +3,8 @@
 **Project:** Stock Market Analysis & Portfolio Optimization  
 **Date:** July 30, 2026
 
+**Repo:** [GitHub Link](https://github.com/SamiiShabuse/INFO442-Group-Project)
+
 ## Introduction
 
 This project builds a portfolio optimization and risk analytics workflow. The goal is to use historical asset returns, volatility, correlations, sector information, and macroeconomic risk indicators to compare portfolio strategies and understand risk-return tradeoffs.

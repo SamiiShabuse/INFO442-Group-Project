@@ -105,6 +105,7 @@ MODEL_FOLDERS = {
     "Ridge Regression": "ridge_regression",
     "Random Forest": "random_forest",
     "Gradient Boosting": "gradient_boosting",
+    "Neural Network MLP": "neural_network_mlp",
 }
 
 # ============================================================

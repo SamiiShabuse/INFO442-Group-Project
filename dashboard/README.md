@@ -8,6 +8,12 @@ Run it from the project root with:
 streamlit run dashboard/app.py
 ```
 
+Install dashboard dependencies from the project root with:
+
+```bash
+pip install -r dashboard/requirements.txt
+```
+
 The dashboard uses cleaned project outputs from `data/processed/`, especially:
 
 - `data/processed/integrated/`
@@ -22,9 +28,35 @@ The dashboard uses cleaned project outputs from `data/processed/`, especially:
 - Model Comparison
 - Prediction Explorer
 - Portfolio Strategies
+- Live Optimizer
+
+## Model Connections
+
+The Model Comparison page reads:
+
+- `data/processed/model_comparison/all_ticker_model_comparison_metrics.csv`
+- `data/processed/model_comparison/garch_spy_comparison_metrics.csv`
+
+The Prediction Explorer reads each model's `test_predictions.csv` file from `data/processed/modeling/`. It currently supports:
+
+- Linear Regression
+- Ridge Regression
+- Random Forest
+- Gradient Boosting
+
+The Portfolio Strategies page reads the saved outputs from `data/processed/portfolio_optimization/`.
+
+The Live Optimizer builds a portfolio on demand using Random Forest predicted volatility combined with historical asset correlations. Random Forest is used because it is currently the strongest all-ticker volatility model by MAE, RMSE, and R2.
+
+## Refreshing Outputs
+
+If feature engineering or model notebooks are rerun, rerun the downstream notebooks in order before launching the dashboard:
+
+1. `notebooks/05_model_comparison/01_model_comparison.ipynb`
+2. `notebooks/06_portfolio_optimization/01_portfolio_optimization.ipynb`
+
+This keeps the dashboard tables and charts aligned with the newest model outputs.
 
 ## Notes
-
-Install dashboard dependencies with `pip install -r dashboard/requirements.txt` if Streamlit or Plotly is missing.
 
 The dashboard should stay focused on presentation and interaction. Data cleaning, feature engineering, modeling, and portfolio optimization should continue to live in the notebooks and processed output files.

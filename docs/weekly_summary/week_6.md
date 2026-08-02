@@ -24,10 +24,13 @@
 - Updated the modeling and dashboard notes so the MLP appears alongside the other models while keeping Random Forest as the strongest model for portfolio optimization.
 
 ## Decisions Made (as a team)
-- 
+- We decided to keep Random Forest as the main volatility prediction model used for portfolio optimization because it still performs best by MAE, RMSE, and R2.
+- We decided to include the Neural Network MLP as an additional comparison model in the model comparison outputs and dashboard, but not use it for portfolio construction yet because its test performance was weaker.
+- We decided to use the EDA analysis report as the main written evidence for data quality, asset behavior, macro relationships, and hypotheses that support the modeling work.
 
 ## Blockers / Open Questions
-- 
+- No major blockers right now.
+- We still need to decide how much detail to include in the final presentation about the EDA findings and why the MLP was useful as a comparison model even though Random Forest remained stronger.
 
 ## Next Steps
 - Use the updated Week 6 analysis report to explain the final feature selection and model comparison results.

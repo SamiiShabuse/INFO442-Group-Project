@@ -18,7 +18,10 @@
 - Built an efficient frontier visualization on the Live Optimizer page, showing where the optimized portfolio sits relative to all achievable risk-return combinations using the RF-predicted risk model. 
 
 **Samii**
-- 
+- Created the first draft of the EDA analysis report, summarizing the Yahoo Finance market data, Wikipedia sector metadata, and FRED macroeconomic datasets.
+- Documented key EDA findings around data quality, asset returns and volatility, drawdowns, sector distribution, correlations, macro relationships, and hypotheses for later modeling.
+- Added a Neural Network MLP volatility model as another all-ticker model comparison point, including saved metrics and test predictions for the shared model comparison workflow.
+- Updated the modeling and dashboard notes so the MLP appears alongside the other models while keeping Random Forest as the strongest model for portfolio optimization.
 
 ## Decisions Made (as a team)
 - 

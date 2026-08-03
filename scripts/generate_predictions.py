@@ -20,6 +20,19 @@ def main(model_path, features_path, out_path):
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    print("Loading features:", features_path)
+    df = pd.read_csv(features_path, parse_dates=["date"], low_memory=False)
+
+    if not {"date", "ticker"}.issubset(df.columns):
+        raise SystemExit("feature CSV MUST HAVE 'date' and 'ticker' columns")
+
+    last_date = df['date'].max()
+    print("Latest feature date found:", last_date.date())
+
+    df_latest = df[df["date"] == last_date].copy()
+    if df_latest.empty:
+        raise SystemExit("NO rows for latest date in features file")
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser
     p.add_argument("--model", required=True, help="Path to trained model (joblib .pkl)")

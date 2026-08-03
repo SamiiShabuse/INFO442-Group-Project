@@ -33,6 +33,18 @@ def main(model_path, features_path, out_path):
     if df_latest.empty:
         raise SystemExit("NO rows for latest date in features file")
 
+    # Build X: drop non-feature columns (keep only numeric columns)
+    drop_cols = ["date", "ticker", "symbol", "adj_close", "close"]
+    X = df_latest.drop(columns=[c for c in drop_cols if c in df_latest.columns], errors="ignore")
+
+    # If there are non-numeric cols, drop them
+    X = X.select_dtypes(include=[np.number])
+    tickers = df_latest['ticker'].values
+    X.index = tickers
+
+    print("Loading model:", model_path)
+    model = joblib.load(model_path)
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser
     p.add_argument("--model", required=True, help="Path to trained model (joblib .pkl)")

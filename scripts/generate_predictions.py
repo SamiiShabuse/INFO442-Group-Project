@@ -45,6 +45,24 @@ def main(model_path, features_path, out_path):
     print("Loading model:", model_path)
     model = joblib.load(model_path)
 
+    # Predict: model should accept rows for each ticker (one row per ticker)
+    # If the model however is a classifer that provides predict_proba, use the relevent column; otherwise use predict.
+    if hasattr(model, "predict"):
+        preds = model.predict(X)
+    else:
+        raise SystemExit("Model does not have a predict method.")
+
+    preds = pd.Series(preds, index=tickers, name=str((last_date + BDay(1).date())))  
+
+    # Build a single-row DataFrame where columns are tickers and index is the target/prediction date
+    preds_df = preds.to_frame().T
+    preds_df.index = pd.to_datetime(preds_df.index)
+
+    preds_df.to_csv(out_path, index=True)
+    print("Wrote predictiosn to:", out_path)
+    print("Preview:")
+    print(preds_df.iloc[0].head())
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser
     p.add_argument("--model", required=True, help="Path to trained model (joblib .pkl)")

@@ -34,3 +34,36 @@ def load_predictions(path):
     # ensure string trickers
     row.index = row.index.astype(str)
     return row
+
+def make_weight_from_preds(preds, pred_is_vol=True, max_pos_pct=0.2):
+    if pred_is_vol:
+        inv = 1.0 / (preds.astype(float) + EPS) 
+        w = inv.clip(lower=0)
+    else:
+        w = preds.astype(float).clip(lower=0)
+
+    # drop NaN/zero columns
+    w = w.replace([np.inf, -np.inf], np.nan).fillna(0)
+    if w.sum() <= 0:
+        raise SystemExit("All weights zero after processing predictions.")
+
+    # intiial normalization
+    w = w / w.sum()
+    # apply per-ticker cap and renormalize (simple iterative cap)
+    cap = max_pos_pct
+    over = w > cap
+    if over.any():
+        w_clipped = w.clip(upper=cap)
+        remainder = 1.0 - w_clipped.sum()
+        if remainder <= 0:
+            # evenly distributed among uncapped if non remain
+            w_final = w_clipped / w_clipped.sum()
+            return w_final
+        # distribute remainder proprotionally among uncapped
+        uncapped = (~over) & (w_clipped > 0)
+        if uncapped.any():
+            prop = w.loc[uncapped] / w.loc[uncapped].sum()
+            w_clipped.loc[uncapped] += remainder * prop
+        w = w_clipped 
+    return w
+    

@@ -66,4 +66,16 @@ def make_weight_from_preds(preds, pred_is_vol=True, max_pos_pct=0.2):
             w_clipped.loc[uncapped] += remainder * prop
         w = w_clipped 
     return w
-    
+
+def get_last_price_alpaca(api, symbol):
+    # prefer last_trade; fall back to last_quote midpoint
+    try:
+        trade = api.get_latest_trade(symbol)
+        return float(trade.price)
+    except Exception:
+        try:
+            q = api.get_latest_quote(symbol)
+            return (float(q.bidprice) + float(q.askprice)) / 2.0
+        except Exception:
+            return None
+

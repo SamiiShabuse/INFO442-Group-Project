@@ -79,3 +79,77 @@ def get_last_price_alpaca(api, symbol):
         except Exception:
             return None
 
+def safe_int(qty):
+    try:
+        return int(math.floor(float(qty)))
+    except Exception:
+        return 0
+
+def main(args):
+    preds = load_predictions(args.predictions)
+    print("Loaded predictions for target date:", preds.name)
+
+    weights = make_weight_from_preds(preds, pred_is_vol=args.pred_is_vol, max_pos_pct=args.max_pos_pct)
+    weights = weights[weights > 0].sort_values(ascending=False)
+    print(f"{len(weights)} tickers with nonzero target weight. Top 5:\n", weights.head())
+
+    # Alpaca REST client (optional for dry-run)
+    api = None
+    if not args.dry_run:
+        if REST is None:
+            raise SystemExit("aplalpaca-trade-api not installed. pip install alpaca-trade-api")
+        key = os.getenv("ALPACA_API_KEY")
+        secret = os.getenv("ALPACA_SECRET_KEY")
+        base_url = args.alpaca_base_url or os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
+        if not key or not secret:
+            raise SystemExit("Set ALPACA_API_KEY and ALPACA_SECRET_KEY in your environment or run with --dry-run")
+        api = REST(key, secret, base_url, api_version='v2')
+
+    # Determine investable cash (use account equity * fraction_invest if not enough cash)
+    investable_cash = None
+    account_equity = None
+    if api:
+        acct = api.get_account()
+        account_equity = float(acct.equity)
+        cash = float(acct.cash)
+        investable_cash = account_equity * args.fraction_invest
+        # don't use more cash then avaliable
+        investable_cash = min(investable_cash, cash)
+        print(f"Account equity: {account_equity:.2f}, cash: {cash:.2f}, investable cash: {investable_cash:.2f}")
+        print(f"Account equity: {account_equity:.2f}, cash available: {cash:.2f}, investable_cash: {investable_cash:.2f}")
+        if investable_cash < args.min_cash:
+            raise SystemExit(f"Investable cash {investable_cash:.2f} below min_cash {args.min_cash:.2f}")
+    else:
+        # dry-run: assume a virtual bankroll
+        investable_cash = args.virtual_cash
+        account_equity = investable_cash
+        print(f"Dry-run virtual equity: {account_equity:.2f}")
+
+    # Build desired dollar allocations
+    desired_dollars = (weights * investable_cash).to_dict()
+    print(f"Desired dollar allocations:\n{desired_dollars}")
+
+    # Get current positions
+    current_positions = {}
+    if api:
+        for symbol in weights.index:
+            try:
+                pos = api.get_position(symbol)
+                current_positions[symbol] = {"qty": float(pos.qty), "market_value": float(pos.market_value)}
+            except Exception:
+                current_positions[symbol] = {"qty": 0.0, "market_value": 0.0}
+
+    else:
+        # dry-run assume zero positions
+        for symbol in weights.index:
+            current_positions[symbol] = {"qty": 0.0, "market_value": 0.0}
+
+    # For each ticker create order to move to desired allocation
+    orders = []
+    for symbol, target_dollar in desired_dollars.items():
+        price = None
+        if api:
+            price = get_last_price_alpaca(api, symbol)
+        else:
+            # try to source price from preds if available (not ideal), else skip
+            price = args.dry_price or None

@@ -144,7 +144,7 @@ def main(args):
         for symbol in weights.index:
             current_positions[symbol] = {"qty": 0.0, "market_value": 0.0}
 
-    # For each ticker create order to move to desired allocation
+        # For each ticker create order to move to desired allocation
     orders = []
     for symbol, target_dollar in desired_dollars.items():
         price = None
@@ -153,3 +153,73 @@ def main(args):
         else:
             # try to source price from preds if available (not ideal), else skip
             price = args.dry_price or None
+        if price is None or price <= 0:
+            print(f"Skipping {symbol}: no price available")
+            continue
+        desired_qty = safe_int(target_dollar / price)
+        current_qty = safe_int(current_positions.get(symbol, {}).get("qty", 0.0))
+        qty_diff = desired_qty - current_qty
+        if abs(qty_diff) < 1:
+            continue
+        side = "buy" if qty_diff > 0 else "sell"
+        qty_submit = abs(qty_diff)
+        orders.append({"symbol": symbol, "side": side, "qty": qty_submit, "price": price, "desired_dollar": target_dollar, "current_qty": current_qty})
+
+    if not orders:
+        print("No orders to submit (portfolio already aligned).")
+        return
+
+    # Dry-run: print planned orders
+    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"orders_{timestamp}.csv"
+
+    if args.dry_run:
+        print("--- DRY RUN: planned orders ---")
+        for o in orders:
+            print(f"{o['side'].upper():4} {o['qty']:5d} {o['symbol']:6s} at ~{o['price']:.2f} (target ${o['desired_dollar']:.2f})")
+        # write log of dry-run
+        with open(log_path, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["ts", "symbol", "side", "qty", "price", "desired_dollar", "current_qty", "status"])
+            w.writeheader()
+            for o in orders:
+                orow = {"ts": timestamp, **o, "status": "dry-run"}
+                w.writerow(orow)
+        print("Wrote dry-run order log to:", log_path)
+        return
+
+    # Submit orders to Alpaca with safety checks and logging
+    with open(log_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["ts", "symbol", "side", "qty", "price", "desired_dollar", "current_qty", "order_id", "status", "detail"])
+        writer.writeheader()
+        for o in orders:
+            if o["qty"] <= 0:
+                continue
+            if o["qty"] > args.max_qty_per_order:
+                print(f"Reducing {o['symbol']} qty from {o['qty']} to max {args.max_qty_per_order}")
+                o["qty"] = args.max_qty_per_order
+            try:
+                resp = api.submit_order(symbol=o["symbol"], qty=o["qty"], side=o["side"], type="market", time_in_force="day")
+                writer.writerow({"ts": timestamp, "symbol": o["symbol"], "side": o["side"], "qty": o["qty"], "price": o["price"], "desired_dollar": o["desired_dollar"], "current_qty": o["current_qty"], "order_id": resp.id, "status": "submitted", "detail": ""})
+                print(f"Submitted {o['side']} {o['qty']} {o['symbol']} order id {resp.id}")
+            except APIError as e:
+                writer.writerow({"ts": timestamp, "symbol": o["symbol"], "side": o["side"], "qty": o["qty"], "price": o["price"], "desired_dollar": o["desired_dollar"], "current_qty": o["current_qty"], "order_id": "", "status": "failed", "detail": str(e)})
+                print(f"FAILED submitting {o['symbol']}: {e}")
+
+    print("Order submission complete. Log:", log_path)
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser()
+    p.add_argument("--predictions", required=True, help="Predictions CSV (single-row or multiple rows, columns=tickers)")
+    p.add_argument("--dry-run", action="store_true", help="Print planned orders but do not submit")
+    p.add_argument("--pred-is-vol", action="store_true", default=True, help="Treat predictions as predicted volatility (use inverse) (default: true)")
+    p.add_argument("--max-pos-pct", type=float, default=0.20, help="Max fraction of portfolio per ticker")
+    p.add_argument("--fraction-invest", type=float, default=0.95, help="Fraction of equity to allocate to models")
+    p.add_argument("--min-cash", type=float, default=50.0, help="Minimum cash required to continue")
+    p.add_argument("--virtual-cash", type=float, default=100000.0, help="Virtual cash for dry-run")
+    p.add_argument("--alpaca-base-url", type=str, default=None, help="Alpaca base URL (optional, otherwise uses env ALPACA_BASE_URL)")
+    p.add_argument("--max-qty-per-order", type=int, default=1000, help="Max absolute qty to submit per order")
+    p.add_argument("--dry-price", type=float, default=None, help="Price to use for dry-run if Alpaca not available")
+    args = p.parse_args()
+    main(args)

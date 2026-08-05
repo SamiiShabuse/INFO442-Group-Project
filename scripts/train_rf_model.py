@@ -1,5 +1,7 @@
 """Train and export a Random Forest volatility model.
 
+TLDR: replica of the notebook training flow, but in a repeatable script that exports a model artifact.
+
 This script turns the notebook training flow into a repeatable artifact export:
 
     python scripts/train_rf_model.py \

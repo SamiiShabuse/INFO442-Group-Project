@@ -1,0 +1,55 @@
+{
+  "model_type": "RandomForestRegressor",
+  "model_path": "models\\rf_model.pkl",
+  "features_path": "data\\processed\\features\\feature_engineered_dataset.csv",
+  "selected_features_path": "data\\processed\\features\\selected_features.csv",
+  "selected_features": [
+    "return_lag_1",
+    "return_lag_5",
+    "rolling_return_5d",
+    "rolling_return_20d",
+    "abs_return",
+    "squared_return",
+    "rolling_abs_return_20d",
+    "rolling_volatility_5d",
+    "price_to_moving_avg_20d",
+    "vix",
+    "treasury_10yr_pct",
+    "yield_curve_spread",
+    "is_inverted",
+    "fed_funds_rate_pct",
+    "unemployment_rate_pct",
+    "recession_flag",
+    "cpi_pct_change"
+  ],
+  "target_column": "future_volatility_20d",
+  "best_params": {
+    "max_depth": 16,
+    "min_samples_leaf": 100
+  },
+  "n_jobs": 1,
+  "tuned_with_grid_search": false,
+  "split_date": "2024-01-01",
+  "train_start_date": "2018-01-31",
+  "train_end_date": "2023-12-29",
+  "test_start_date": "2024-01-02",
+  "test_end_date": "2025-12-01",
+  "final_fit_start_date": "2018-01-31",
+  "final_fit_end_date": "2025-12-01",
+  "train_rows": 31269,
+  "test_rows": 10101,
+  "final_fit_rows": 41370,
+  "training_start_timestamp": "2026-08-04T23:01:49.718030",
+  "training_end_timestamp": "2026-08-04T23:02:02.082627",
+  "training_duration_seconds": 12.364596800001891,
+  "holdout_metrics": {
+    "MAE": 0.004040934552634941,
+    "RMSE": 0.006001765520488635,
+    "R2": 0.2925429659677322
+  },
+  "baseline_metrics": {
+    "MAE": 0.0046471957325684545,
+    "RMSE": 0.007130185107893033,
+    "R2": 0.0015102059479314978
+  }
+}

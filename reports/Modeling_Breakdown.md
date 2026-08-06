@@ -1,6 +1,12 @@
 # Modeling
 
-This section covers the five models built to predict future stock volatility, the feature selection work that followed, and an honest comparison of where things currently stand.
+**Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse
+
+## Synopsis
+
+We built five models to predict 20-day future stock volatility across 21 tickers: Linear Regression, Ridge Regression, Random Forest, Gradient Boosting, and GARCH(1,1). Random Forest performs best (R² 0.339), with Gradient Boosting close behind (R² 0.306). Linear and Ridge currently underperform the persistence baseline because they're still trained on the full 17-feature set; our feature selection experiments found a trimmed 5-feature macro set fixes this (R² ~0.31), but that fix hasn't been rerun back into the official notebooks yet. Full implementation details are in `notebooks/04_modeling/`.
+
+---
 
 ## What we're predicting
 
@@ -10,7 +16,7 @@ Every model targets `future_volatility_20d`, the realized volatility (standard d
 
 Before training anything, we needed something simple to beat. The baseline just assumes future volatility will look like recent volatility:
 
-- **Baseline: rolling_volatility_20d**
+- **Baseline: `rolling_volatility_20d`**
 - MAE: 0.004647
 - RMSE: 0.007130
 - R²: 0.0015
@@ -61,11 +67,11 @@ These are the actual current metrics from each notebook's output, not aspiration
 | Baseline (persistence) | 0.004647 | 0.007130 | 0.0015 | — |
 | Linear Regression | 0.005363 | 0.007764 | -0.184 | No |
 | Ridge Regression | 0.005362 | 0.007763 | -0.184 | No |
-| Random Forest (tuned) | 0.003741 | 0.005802 | 0.339 | Yes, clearly the best |
+| **Random Forest (tuned)** | **0.003741** | **0.005802** | **0.339** | Yes, clearly the best |
 | Gradient Boosting | 0.004113 | 0.005946 | 0.306 | Yes, close second |
-| GARCH(1,1), SPY only | 0.003815 | 0.006027 | -0.174 | Yes, vs its own SPY-only baseline (R² -0.419) |
+| GARCH(1,1), SPY only | 0.003815 | 0.006027 | -0.174 | Yes, vs. its own SPY-only baseline (R² -0.419) |
 
-A quick way to read this: negative R² means the model is doing worse than just guessing the average. Right now, **Linear and Ridge Regression are both underperforming the simple baseline**, while Random Forest and Gradient Boosting clearly beat it. GARCH can't be compared apples-to-apples to the other four since it only runs on SPY, but it does beat its own SPY-specific baseline.
+A quick way to read this: negative R² means the model is doing worse than just guessing the average. Right now, Linear and Ridge Regression are both underperforming the simple baseline, while Random Forest and Gradient Boosting clearly beat it. GARCH can't be compared apples-to-apples to the other four since it only runs on SPY, but it does beat its own SPY-specific baseline.
 
 **Why Linear and Ridge are underperforming:** both are currently trained on the full 17-feature set, which includes all 7 FRED macro columns. Our feature selection experiments (below) found that this exact full-macro set actively hurts linear models. The fix is known, it just hasn't been applied back into these two notebooks yet.
 
@@ -79,15 +85,33 @@ We ran a dedicated experiment (`06_feature_selection_experiments.ipynb`) to test
 - Selected macro: market features + 5 hand-picked macro columns (VIX, yield curve spread, inversion flag, unemployment rate, CPI % change)
 
 **What we found:**
-- The full macro set (all 7 columns) made Linear and Ridge Regression *worse*, not better
+- The full macro set (all 7 columns) made Linear and Ridge Regression worse, not better
 - The selected macro set (5 columns) was the best-performing configuration overall: Linear Regression hit RMSE 0.005929, R² 0.31, and Ridge Regression performed almost identically
 - Tree-based models (Random Forest, Gradient Boosting) were largely unaffected either way. They can handle noisy or redundant features better than linear models because they can just ignore weak splits
 
 We also ran three automated feature ranking methods to cross-check this by hand:
-- **SelectKBest** (statistical F-test): top features were the volatility/momentum features plus VIX and the recession flag
-- **Mutual information** (captures non-linear relationships): ranked `rolling_volatility_20d`, `rolling_squared_return_20d`, and `rolling_abs_return_20d` highest, with CPI % change also showing up strongly
-- **Random Forest importance**: `rolling_abs_return_20d` dominated at 46% importance, followed by risk-free rate, CPI % change, VIX, and yield curve spread
+- **SelectKBest (statistical F-test):** top features were the volatility/momentum features plus VIX and the recession flag
+- **Mutual information (captures non-linear relationships):** ranked `rolling_volatility_20d`, `rolling_squared_return_20d`, and `rolling_abs_return_20d` highest, with CPI % change also showing up strongly
+- **Random Forest importance:** `rolling_abs_return_20d` dominated at 46% importance, followed by risk-free rate, CPI % change, VIX, and yield curve spread
 
 All three methods agree on the same core idea: recent volatility-based market features carry the most signal, and a handful of macro variables (VIX, yield curve, CPI, unemployment) add real value, but only when the noisier/less useful macro columns (like the fed funds rate and raw treasury yield) are dropped.
 
 **Bottom line:** feature selection genuinely improves the modeling process here. It's not just a "more data is always better" situation, at least not for the linear models.
+
+## Known gap to fix before final submission
+
+`01_linear_regression.ipynb` and `04_ridge_regression.ipynb` are still trained on the full 17-feature set. Their written conclusions describe good performance (R² ~0.30) that was true of an earlier, better feature set, but the current output cells in both notebooks show negative R² since the notebooks haven't been rerun with the selected macro feature set that `06_feature_selection_experiments.ipynb` proved works better.
+
+Two ways to close this before final submission:
+1. Rerun 01 and 04 using the 5-feature selected macro set, so the reported numbers actually reflect the best-known configuration for those models, or
+2. Keep the current honest numbers as-is, and frame the writeup as: "Linear/Ridge underperformed with the full feature set, which is exactly why we ran the feature selection experiment in notebook 06."
+
+Either is a legitimate way to write it up. Option 2 is arguably the stronger story for a report since it shows a real methodological finding (more features isn't always better), but it does mean the two "official" model notebooks won't show their best possible numbers unless they get rerun.
+
+## Modeling key takeaways
+
+- Random Forest is the best-performing model for predicting 20-day future volatility across all 21 tickers, clearly beating the persistence baseline (R² 0.339 vs 0.0015)
+- Gradient Boosting is a close second (R² 0.306), and is the only other model besides Random Forest that reliably beats baseline right now
+- Linear and Ridge Regression, in their current state, underperform the baseline. This isn't a dead end though, it's the direct motivation for the feature selection work, and both models perform competitively (R² ~0.31) once trained on the trimmed 5-macro-feature set instead
+- GARCH is a useful reference point but not directly comparable to the other four, since it only models SPY on its own return series rather than the pooled 21-ticker dataset
+- Feature selection matters more for linear models than tree-based ones. Adding every available macro variable actively hurt Linear/Ridge, while Random Forest and Gradient Boosting were largely indifferent to it

@@ -1,6 +1,8 @@
 {
   "model_type": "RandomForestRegressor",
-  "model_path": "models\\rf_model.pkl",
+  "model_path": "data\\processed\\modeling\\random_forest\\rf_model.pkl",
+  "sklearn_version": "1.9.0",
+  "joblib_version": "1.5.3",
   "features_path": "data\\processed\\features\\feature_engineered_dataset.csv",
   "selected_features_path": "data\\processed\\features\\selected_features.csv",
   "selected_features": [
@@ -39,13 +41,13 @@
   "train_rows": 31269,
   "test_rows": 10101,
   "final_fit_rows": 41370,
-  "training_start_timestamp": "2026-08-04T23:01:49.718030",
-  "training_end_timestamp": "2026-08-04T23:02:02.082627",
-  "training_duration_seconds": 12.364596800001891,
+  "training_start_timestamp": "2026-08-05T23:01:58.021485",
+  "training_end_timestamp": "2026-08-05T23:02:10.501585",
+  "training_duration_seconds": 12.480079400000022,
   "holdout_metrics": {
-    "MAE": 0.004040934552634941,
-    "RMSE": 0.006001765520488635,
-    "R2": 0.2925429659677322
+    "MAE": 0.00404091404517701,
+    "RMSE": 0.006001770013483712,
+    "R2": 0.2925419067453582
   },
   "baseline_metrics": {
     "MAE": 0.0046471957325684545,

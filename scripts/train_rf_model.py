@@ -7,7 +7,7 @@ This script turns the notebook training flow into a repeatable artifact export:
     python scripts/train_rf_model.py \
         --features data/processed/features/feature_engineered_dataset.csv \
         --selected-features data/processed/features/selected_features.csv \
-        --model-out models/rf_model.pkl
+        --model-out data/processed/modeling/random_forest/rf_model.pkl
 
 The exported model is refit on all labeled rows after hyperparameter tuning so
 it can use the most recent rows that have a known 20-day future-volatility
@@ -22,6 +22,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
@@ -192,6 +193,8 @@ def main(
     metadata = {
         "model_type": "RandomForestRegressor",
         "model_path": str(model_out),
+        "sklearn_version": sklearn.__version__,
+        "joblib_version": joblib.__version__,
         "features_path": str(features_path),
         "selected_features_path": str(selected_features_path),
         "selected_features": selected_features,
@@ -237,7 +240,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model-out",
-        default="models/rf_model.pkl",
+        default="data/processed/modeling/random_forest/rf_model.pkl",
         help="Path where the trained model should be written",
     )
     parser.add_argument("--metadata-out", default=None, help="Optional metadata JSON path")

@@ -1,0 +1,2 @@
+feature_date,prediction_target_date,tickers,mean_predicted_future_volatility_20d,mean_trailing_volatility_20d,mean_prediction_minus_trailing,mean_absolute_difference,correlation_predicted_vs_trailing
+2026-08-04,2026-08-05,21,0.014474385259231216,0.017141552633169254,-0.0026671673739380375,0.004365684560651199,0.7654669596464214

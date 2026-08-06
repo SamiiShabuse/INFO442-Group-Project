@@ -2,10 +2,10 @@
 
 Example:
     python scripts/generate_predictions.py \
-        --model models/rf_model.pkl \
+        --model data/processed/modeling/random_forest/rf_model.pkl \
         --features data/processed/features/feature_engineered_dataset.csv \
         --selected-features data/processed/features/selected_features.csv \
-        --out predictions/latest_preds.csv
+        --out data/processed/modeling/random_forest/live_predictions/latest_preds.csv
 
 The output is a wide CSV with one row and ticker symbols as columns, which is
 the shape expected by scripts/paper_trade.py.

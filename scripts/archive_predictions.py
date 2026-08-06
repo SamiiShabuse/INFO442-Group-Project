@@ -2,9 +2,9 @@
 
 Example:
     python scripts/archive_predictions.py \
-        --predictions predictions/latest_preds.csv \
-        --out-dir predictions \
-        --log predictions/prediction_log.csv
+        --predictions data/processed/modeling/random_forest/live_predictions/latest_preds.csv \
+        --out-dir data/processed/modeling/random_forest/live_predictions \
+        --log data/processed/modeling/random_forest/live_predictions/prediction_log.csv
 """
 
 import argparse
@@ -70,17 +70,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Archive latest wide predictions by target date.")
     parser.add_argument(
         "--predictions",
-        default="predictions/latest_preds.csv",
+        default="data/processed/modeling/random_forest/live_predictions/latest_preds.csv",
         help="Wide prediction CSV from generate_predictions.py",
     )
     parser.add_argument(
         "--out-dir",
-        default="predictions",
+        default="data/processed/modeling/random_forest/live_predictions",
         help="Directory for dated prediction CSVs",
     )
     parser.add_argument(
         "--log",
-        default="predictions/prediction_log.csv",
+        default="data/processed/modeling/random_forest/live_predictions/prediction_log.csv",
         help="Long-format prediction log to create/update",
     )
 

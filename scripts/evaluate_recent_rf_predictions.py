@@ -6,10 +6,10 @@ volatility over those N days, and compares predicted vs actual volatility.
 
 Example:
     python scripts/evaluate_recent_rf_predictions.py \
-        --model models/rf_model.pkl \
+        --model data/processed/modeling/random_forest/rf_model.pkl \
         --features data/processed/features/latest_feature_snapshot.csv \
         --selected-features data/processed/features/selected_features.csv \
-        --out reports/latest_20d_rf_evaluation.csv
+        --out data/processed/modeling/random_forest/live_evaluation/latest_20d_rf_evaluation.csv
 """
 
 import argparse
@@ -192,7 +192,11 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate recent RF predictions against realized 20d volatility.")
-    parser.add_argument("--model", default="models/rf_model.pkl", help="Path to trained joblib model")
+    parser.add_argument(
+        "--model",
+        default="data/processed/modeling/random_forest/rf_model.pkl",
+        help="Path to trained joblib model",
+    )
     parser.add_argument(
         "--features",
         default="data/processed/features/latest_feature_snapshot.csv",
@@ -205,7 +209,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--out",
-        default="reports/latest_20d_rf_evaluation.csv",
+        default="data/processed/modeling/random_forest/live_evaluation/latest_20d_rf_evaluation.csv",
         help="Detailed per-ticker output CSV",
     )
     parser.add_argument("--summary-out", default=None, help="Optional summary CSV path")

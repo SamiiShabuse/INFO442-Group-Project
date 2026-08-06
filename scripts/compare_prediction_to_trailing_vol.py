@@ -7,9 +7,9 @@ the trailing 20-day volatility ending on 2026-08-04.
 Example:
     python scripts/compare_prediction_to_trailing_vol.py \
         --features data/processed/features/latest_feature_snapshot.csv \
-        --predictions predictions/preds_2026-08-05.csv \
+        --predictions data/processed/modeling/random_forest/live_predictions/preds_2026-08-05.csv \
         --feature-date 2026-08-04 \
-        --out reports/rf_vs_trailing_20d_ending_2026-08-04.csv
+        --out data/processed/modeling/random_forest/live_evaluation/rf_vs_trailing_20d_ending_2026-08-04.csv
 """
 
 import argparse

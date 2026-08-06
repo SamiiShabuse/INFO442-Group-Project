@@ -43,6 +43,19 @@ volatile each ticker will be over the next 20 trading days.
 Because of that, a prediction made today cannot be fully evaluated tomorrow.
 We need to wait until the next 20 trading days have happened.
 
+## Where Random Forest Outputs Live
+
+Random Forest artifacts are grouped here:
+
+```text
+data/processed/modeling/random_forest/
+```
+
+That folder contains the trained model, its metrics/metadata, live prediction
+runs, and live evaluation outputs. Keeping these files inside the model-specific
+folder makes the project cleaner than using top-level `models/`, `predictions/`,
+or generated CSVs in `reports/`.
+
 ## Script Details
 
 ### `train_rf_model.py`
@@ -59,9 +72,9 @@ data/processed/features/selected_features.csv
 Outputs:
 
 ```text
-models/rf_model.pkl
-models/rf_model.metrics.csv
-models/rf_model.metadata.json
+data/processed/modeling/random_forest/rf_model.pkl
+data/processed/modeling/random_forest/rf_model.metrics.csv
+data/processed/modeling/random_forest/rf_model.metadata.json
 ```
 
 Run this when you need to create or retrain the model.
@@ -100,7 +113,7 @@ volatility for each ticker.
 Inputs:
 
 ```text
-models/rf_model.pkl
+data/processed/modeling/random_forest/rf_model.pkl
 data/processed/features/latest_feature_snapshot.csv
 data/processed/features/selected_features.csv
 ```
@@ -108,17 +121,17 @@ data/processed/features/selected_features.csv
 Output:
 
 ```text
-predictions/latest_preds.csv
+data/processed/modeling/random_forest/live_predictions/latest_preds.csv
 ```
 
 Example:
 
 ```powershell
 python scripts\generate_predictions.py `
-  --model models\rf_model.pkl `
+  --model data\processed\modeling\random_forest\rf_model.pkl `
   --features data\processed\features\latest_feature_snapshot.csv `
   --selected-features data\processed\features\selected_features.csv `
-  --out predictions\latest_preds.csv
+  --out data\processed\modeling\random_forest\live_predictions\latest_preds.csv
 ```
 
 ### `archive_predictions.py`
@@ -129,14 +142,14 @@ prediction log.
 Inputs:
 
 ```text
-predictions/latest_preds.csv
+data/processed/modeling/random_forest/live_predictions/latest_preds.csv
 ```
 
 Outputs:
 
 ```text
-predictions/preds_YYYY-MM-DD.csv
-predictions/prediction_log.csv
+data/processed/modeling/random_forest/live_predictions/preds_YYYY-MM-DD.csv
+data/processed/modeling/random_forest/live_predictions/prediction_log.csv
 ```
 
 Run this after generating predictions so each daily run is saved.
@@ -158,8 +171,8 @@ date, computes actual realized volatility, and compares predicted vs. actual.
 Outputs:
 
 ```text
-reports/latest_20d_rf_evaluation.csv
-reports/latest_20d_rf_evaluation.summary.csv
+data/processed/modeling/random_forest/live_evaluation/latest_20d_rf_evaluation.csv
+data/processed/modeling/random_forest/live_evaluation/latest_20d_rf_evaluation.summary.csv
 ```
 
 Example:
@@ -181,9 +194,9 @@ Example:
 ```powershell
 python scripts\compare_prediction_to_trailing_vol.py `
   --features data\processed\features\latest_feature_snapshot.csv `
-  --predictions predictions\preds_2026-08-05.csv `
+  --predictions data\processed\modeling\random_forest\live_predictions\preds_2026-08-05.csv `
   --feature-date 2026-08-04 `
-  --out reports\rf_vs_trailing_20d_ending_2026-08-04.csv
+  --out data\processed\modeling\random_forest\live_evaluation\rf_vs_trailing_20d_ending_2026-08-04.csv
 ```
 
 ### `paper_trade.py`
@@ -197,7 +210,7 @@ Example dry run:
 
 ```powershell
 python scripts\paper_trade.py `
-  --predictions predictions\latest_preds.csv `
+  --predictions data\processed\modeling\random_forest\live_predictions\latest_preds.csv `
   --dry-run `
   --dry-price 100
 ```
@@ -210,10 +223,10 @@ Use this when you want to make a new live prediction run:
 .\.venv\Scripts\python.exe scripts\refresh_latest_features.py
 
 python scripts\generate_predictions.py `
-  --model models\rf_model.pkl `
+  --model data\processed\modeling\random_forest\rf_model.pkl `
   --features data\processed\features\latest_feature_snapshot.csv `
   --selected-features data\processed\features\selected_features.csv `
-  --out predictions\latest_preds.csv
+  --out data\processed\modeling\random_forest\live_predictions\latest_preds.csv
 
 python scripts\archive_predictions.py
 ```

@@ -25,6 +25,9 @@ evaluate_recent_rf_predictions.py
 compare_prediction_to_trailing_vol.py
     compares RF predictions to recent trailing volatility
 
+create_sample_current_positions.py
+    creates a fake holdings file for rebalance-order testing
+
 generate_rebalance_orders.py
     turns optimized portfolio weights into dry-run rebalance orders
 
@@ -242,6 +245,8 @@ python scripts\generate_rebalance_orders.py --portfolio-value 100000
 Example with existing holdings:
 
 ```powershell
+python scripts\create_sample_current_positions.py
+
 python scripts\generate_rebalance_orders.py `
   --portfolio-value 100000 `
   --current-positions data\processed\portfolio_optimization\sample_current_positions.csv
@@ -320,6 +325,9 @@ How different is RF from recent trailing volatility?
 
 What portfolio weights and dry-run rebalance orders come from the latest RF prediction?
     generate_rebalance_orders.py
+
+Do I need a fake holdings file for rebalance testing?
+    create_sample_current_positions.py
 
 What orders would these predictions create?
     paper_trade.py

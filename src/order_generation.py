@@ -26,13 +26,13 @@ def load_latest_prices(integrated_path: Path, tickers: list[str], as_of_date=Non
 
 def load_current_positions(path: str | None) -> pd.DataFrame:
     if path is None:
-        return pd.DataFrame(columsn=['ticker', 'quantity'])
+        return pd.DataFrame(columns=['ticker', 'quantity'])
 
     positions = pd.read_csv(path)
     if 'qty' in positions.columns and 'quantity' not in positions.columns:
         positions = positions.rename(columns={'qty': 'quantity'})
 
-    required = {'tickers', 'quantity'}
+    required = {'ticker', 'quantity'}
     missing = required - set(positions.columns)
 
     if missing:
@@ -53,6 +53,8 @@ def generate_rebalance_orders(
     trade_date=None,
 ) -> pd.DataFrame:
     target_weights = target_weights.astype(float).clip(lower=0)
+    if target_weights.sum() <= 0:
+        raise ValueError("Target weights must contain at least one positive weight")
     target_weights = target_weights / target_weights.sum()
 
     current_positions = current_positions if current_positions is not None else load_current_positions(None)
@@ -63,7 +65,7 @@ def generate_rebalance_orders(
 
     rows = []
     for ticker in tickers:
-        price = float(price.loc[ticker])
+        price = float(prices.loc[ticker])
         target_weight = float(target_weights.get(ticker, 0.0))
         current_quantity = float(current_qty.get(ticker, 0.0))
 

@@ -18,4 +18,13 @@ from portfolio_optimizer import (
 )
 
 def load_live_predictions(path: Path, include_benchmark: bool) -> tuple[pd.Timestamp, pd.DataFrame, list[str]]:
-    pass
+    predictions = pd.read_csv(path, index_col=0, parse_dates=True)
+    latest = predictions.tail(1)
+    prediction_date = pd.Timestamp(latest.index[0]).normalize()
+
+    assets = latest.columns.astype(str).tolist()
+    if not include_benchmark:
+        assets = [asset for asset in assets if asset != BENCHMARK]
+
+    return prediction_date, latest[assets], assets
+

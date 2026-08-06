@@ -41,3 +41,26 @@ def load_current_positions(path: str | None) -> pd.DataFrame:
     positions['ticker'] = positions['ticker'].astype(str)
     positions['quantity'] = pd.to_numeric(positions['quantity'], errors="coerce").fillna(0)
     return positions[['ticker', 'quantity']]
+
+def generate_rebalance_orders(
+    target_weights: pd.Series,
+    prices: pd.Series,
+    portfolio_value: float,
+    current_positions: pd.DataFrame | None = None,
+    min_trade_dollars: float = 25.0,
+    max_order_dollars: float | None = None,
+    allow_fractional: bool = False,
+    trade_date=None,
+) -> pd.DataFrame:
+    target_weights = target_weights.astype(float).clip(lower=0)
+    target_weights = target_weights / target_weights.sum()
+
+    current_positions = current_positions if current_positions is not None else load_current_positions(None)
+    current_qty = current_positions.set_index('ticker')['quantity'] if not current_positions.empty else pd.Series(dtype=float)
+
+    tickers = sorted(set(target_weights.index) | set(current_qty.index))
+    prices = prices.reindex(tickers)
+
+    rows = []
+    for ticker in tickers:
+        pass

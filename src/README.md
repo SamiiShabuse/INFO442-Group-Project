@@ -11,6 +11,7 @@ Right now, most project logic still lives in notebooks. As the project matures, 
 - Feature engineering functions
 - Model training and evaluation helpers
 - Portfolio optimization functions
+- Order-generation helpers for simulated/paper rebalancing
 - Shared plotting or metric utilities
 - Code used by both notebooks and the dashboard
 
@@ -24,3 +25,12 @@ Right now, most project logic still lives in notebooks. As the project matures, 
 ## Intended Relationship With Notebooks
 
 Notebooks in `notebooks/` should explain and run the workflow. Shared implementation details should eventually live in `src/`, then be imported into notebooks and the dashboard.
+
+## Current Modules
+
+- `portfolio_optimizer.py`: reusable portfolio math, risk/return metrics, Random Forest predictive covariance construction, and optimization.
+- `order_generation.py`: reusable logic for converting target weights into dry-run buy/sell/hold rebalance orders.
+
+The order-generation module does not submit real trades. It creates structured
+CSV outputs that can be reviewed, visualized, or used later by a separate paper
+trading integration.

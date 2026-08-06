@@ -16,3 +16,6 @@ from portfolio_optimizer import (
     load_risk_free_rate,
     optimize_portfolio,
 )
+
+def load_live_predictions(path: Path, include_benchmark: bool) -> tuple[pd.Timestamp, pd.DataFrame, list[str]]:
+    pass

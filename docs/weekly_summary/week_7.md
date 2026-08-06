@@ -6,6 +6,9 @@
 ## What Each of Us Worked On
 
 **Danny**
+- Built out 5 models to predict stock volatility (Linear, Ridge, Random Forest, Gradient Boosting, GARCH) and compared them against a simple baseline, Random Forest ended up winning clearly (R² 0.339) with Gradient Boosting close behind
+- Ran feature selection experiments and found something useful, throwing every macro variable (FRED data) at Linear/Ridge actually hurt them, but a trimmed 5-feature set fixed it and got them competitive too
+- Wrote it all up in a clean modeling doc with the model breakdowns, honest metrics table, and flagged that 2 of the notebooks still need to be rerun with the better feature set before final submission
 
 **Jeffrey**
 

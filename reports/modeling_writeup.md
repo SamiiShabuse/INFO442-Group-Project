@@ -91,13 +91,3 @@ We also ran three automated feature ranking methods to cross-check this by hand:
 All three methods agree on the same core idea: recent volatility-based market features carry the most signal, and a handful of macro variables (VIX, yield curve, CPI, unemployment) add real value, but only when the noisier/less useful macro columns (like the fed funds rate and raw treasury yield) are dropped.
 
 **Bottom line:** feature selection genuinely improves the modeling process here. It's not just a "more data is always better" situation, at least not for the linear models.
-
-## Known gap to fix before final submission
-
-`01_linear_regression.ipynb` and `04_ridge_regression.ipynb` are still trained on the full 17-feature set. Their written conclusions describe good performance (R² ~0.30) that was true of an earlier, better feature set, but the current output cells in both notebooks show negative R² since the notebooks haven't been rerun with the selected macro feature set that `06_feature_selection_experiments.ipynb` proved works better.
-
-Two ways to close this before final submission:
-1. Rerun 01 and 04 using the 5-feature selected macro set, so the reported numbers actually reflect the best-known configuration for those models, or
-2. Keep the current honest numbers as-is, and frame the writeup as: "Linear/Ridge underperformed with the full feature set, which is exactly why we ran the feature selection experiment in notebook 06."
-
-Either is a legitimate way to write it up. Option 2 is arguably the stronger story for a report since it shows a real methodological finding (more features isn't always better), but it does mean

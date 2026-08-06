@@ -23,3 +23,21 @@ def load_latest_prices(integrated_path: Path, tickers: list[str], as_of_date=Non
         raise ValueError(f"Missing latest prices for: {missing}")
 
     return latest_prices.reindex(tickers)
+
+def load_current_positions(path: str | None) -> pd.DataFrame:
+    if path is None:
+        return pd.DataFrame(columsn=['ticker', 'quantity'])
+
+    positions = pd.read_csv(path)
+    if 'qty' in positions.columns and 'quantity' not in positions.columns:
+        positions = positions.rename(columns={'qty': 'quantity'})
+
+    required = {'tickers', 'quantity'}
+    missing = required - set(positions.columns)
+
+    if missing:
+        raise ValueError(f"Current position CSV is missing columns: {missing}")
+
+    positions['ticker'] = positions['ticker'].astype(str)
+    positions['quantity'] = pd.to_numeric(positions['quantity'], errors="coerce").fillna(0)
+    return positions[['ticker', 'quantity']]

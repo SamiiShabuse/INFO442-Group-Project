@@ -63,4 +63,48 @@ def generate_rebalance_orders(
 
     rows = []
     for ticker in tickers:
-        pass
+        price = float(price.loc[ticker])
+        target_weight = float(target_weights.get(ticker, 0.0))
+        current_quantity = float(current_qty.get(ticker, 0.0))
+
+        target_dollars = target_weight * portfolio_value
+        current_dollars = current_quantity * price
+        trade_dollars = target_dollars - current_dollars
+
+        if abs(trade_dollars) < min_trade_dollars:
+            side = "hold"
+            quantity = 0
+            status = "skipped_small_trade"
+        else:
+            side = "buy" if trade_dollars > 0 else "sell"
+            raw_quantity = abs(trade_dollars) / price
+
+            if max_order_dollars is not None:
+                raw_quantity = min(raw_quantity, max_order_dollars / price)
+
+            quantity = raw_quantity if allow_fractional else int(np.floor(raw_quantity))
+
+            if side == "sell" and not allow_fractional:
+                quantity = min(quantity, int(np.floor(current_quantity)))
+
+
+            status = "dry_run" if quantity > 0 else "skipped_zero_quantity"
+
+
+        rows.append({
+            "Date": pd.Timestamp(trade_date).date().isoformat() if trade_date is not None else None,
+            "ticker": ticker,
+            "target_weight": target_weight,
+            "estimated_price": price,
+            "target_dollars": target_dollars,
+            "current_quantity": current_quantity,
+            "current_dollars": current_dollars,
+            "trade_dollars": trade_dollars,
+            "side": side,
+            "quantity": quantity,
+            "estimated_order_dollars": quantity * price,
+            "status": status,
+        })
+
+    return pd.DataFrame(rows).sort_values(["status", "ticker"])
+

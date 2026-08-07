@@ -15,6 +15,8 @@ notebooks/
   04_modeling/
   05_model_comparison/
   06_portfolio_optimization/
+  07_live_model_evaluation/
+  08_paper_trading/
 ```
 
 ## Run Order
@@ -37,9 +39,16 @@ notebooks/
 6. `05_model_comparison/01_model_comparison.ipynb`
    - Combines saved model metrics into dashboard-ready comparison tables.
    - Keeps the SPY-only GARCH results separate from the all-ticker models.
+   - Outputs files to `data/processed/model_comparison/`.
 7. `06_portfolio_optimization/01_portfolio_optimization.ipynb`
-   - Uses Random Forest predicted volatility in the predictive portfolio
-     strategies and compares them with historical and benchmark strategies.
+   - Uses Random Forest predicted volatility with historical correlations to build predictive portfolio strategies.
+   - Outputs performance metrics, strategy weights, daily returns, and cumulative returns to `data/processed/portfolio_optimization/`.
+8. `07_live_model_evaluation/01_live_rf_real_data_evaluation.ipynb`
+   - Evaluates archived Random Forest live predictions against real market data.
+   - Visualizes live prediction changes and completed 20-trading-day evaluation windows.
+9. `08_paper_trading/01_rebalance_order_analysis.ipynb`
+   - Analyzes dry-run rebalance orders created from optimized target weights.
+   - Visualizes target weights, buy/sell/hold actions, order dollars, and portfolio concentration.
 
 ## Modeling Notebooks
 
@@ -51,20 +60,45 @@ notebooks/
 - `04_modeling/06_feature_selection_experiments.ipynb`
 - `04_modeling/07_neural_network_mlp.ipynb`
 
+Linear Regression, Ridge Regression, Random Forest, Gradient Boosting, and the
+Neural Network MLP use the shared selected feature list from
+`data/processed/features/selected_features.csv`.
+
+GARCH is a SPY-only statistical volatility model, so it is reported separately
+from the all-ticker models.
+
+The tuned Random Forest is currently the strongest all-ticker model by MAE,
+RMSE, and R2. Its predicted volatility is therefore used by the portfolio
+optimization workflow. The MLP is included for model comparison and in the
+dashboard Prediction Explorer, but it does not replace Random Forest in the
+optimizer because its test performance is weaker.
+
 Each modeling notebook should save:
 
 - `test_predictions.csv`
 - `metrics.csv`
+
+## Current Outputs
+
+- Cleaned source datasets: `data/processed/source_data/`
+- Integrated market, sector, and macro datasets: `data/processed/integrated/`
+- Feature-engineered modeling data and selected features: `data/processed/features/`
+- Model predictions and metrics: `data/processed/modeling/`
+- Model comparison tables: `data/processed/model_comparison/`
+- Portfolio optimization outputs: `data/processed/portfolio_optimization/`
+- Random Forest live prediction/evaluation outputs: `data/processed/modeling/random_forest/`
 
 ## Pathing
 
 The notebooks use relative paths based on their current folders:
 
 - Source notebooks use `../../../data/...`
-- Integration, feature, and modeling notebooks use `../../data/...`
+- Integration, feature, modeling, model comparison, portfolio optimization, live evaluation, and paper-trading notebooks use `../../data/...`
 
 If a notebook is moved, its data paths need to be updated.
 
 ## Future Cleanup
 
-If notebook code becomes important and reusable, move it into `src/` and import it from the notebooks. The notebooks should eventually focus on running the workflow and explaining results, not holding all project logic.
+If notebook code becomes important and reusable, move it into `src/` and import
+it from the notebooks. The notebooks should eventually focus on running the
+workflow and explaining results, not holding all project logic.

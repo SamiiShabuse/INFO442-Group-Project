@@ -1,4 +1,4 @@
-# Week 5 Summary - [7/27 - 8/2]
+# Week 6 Summary - [7/27 - 8/2]
 
 **Project:** Stock Market Analysis & Portfolio Optimization   
 **Team Members:** Danny Eapen, Jeffrey Cheung, Joel Thomas, Samii Shabuse  
@@ -13,16 +13,24 @@
 - Verified end-to-end in the browser — asset selection, objective choice, and max-weight constraints all produce a converged portfolio with a live backtest against equal-weight, historical, and SPY — without touching any of the existing dashboard pages or data.
 
 **Joel**
-- 
+- Reviewed the team dashboard and identified two gaps: no way to compare risk appetites without manual tuning, and no visual for the classic risk-return tradeoff.
+- Added risk profile presets (Conservative/Balanced/Aggressive/Custom) to the Live Optimizer page for one-click portfolio configuration instead of manually setting the objective and max weight each time.
+- Built an efficient frontier visualization on the Live Optimizer page, showing where the optimized portfolio sits relative to all achievable risk-return combinations using the RF-predicted risk model. 
 
 **Samii**
-- 
+- Created the first draft of the EDA analysis report, summarizing the Yahoo Finance market data, Wikipedia sector metadata, and FRED macroeconomic datasets.
+- Documented key EDA findings around data quality, asset returns and volatility, drawdowns, sector distribution, correlations, macro relationships, and hypotheses for later modeling.
+- Added a Neural Network MLP volatility model as another all-ticker model comparison point, including saved metrics and test predictions for the shared model comparison workflow.
+- Updated the modeling and dashboard notes so the MLP appears alongside the other models while keeping Random Forest as the strongest model for portfolio optimization.
 
 ## Decisions Made (as a team)
-- 
+- We decided to keep Random Forest as the main volatility prediction model used for portfolio optimization because it still performs best by MAE, RMSE, and R2.
+- We decided to include the Neural Network MLP as an additional comparison model in the model comparison outputs and dashboard, but not use it for portfolio construction yet because its test performance was weaker.
+- We decided to use the EDA analysis report as the main written evidence for data quality, asset behavior, macro relationships, and hypotheses that support the modeling work.
 
 ## Blockers / Open Questions
-- 
+- No major blockers right now.
+- We still need to decide how much detail to include in the final presentation about the EDA findings and why the MLP was useful as a comparison model even though Random Forest remained stronger.
 
 ## Next Steps
 - Use the updated Week 6 analysis report to explain the final feature selection and model comparison results.

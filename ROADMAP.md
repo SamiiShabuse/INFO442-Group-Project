@@ -69,6 +69,8 @@ Team Roles:
 
 **Goal:** Validate the combined dataset, confirm the join logic, and document the final integrated data structure.
 
+**Status:** Complete.
+
 | Team Member | Tasks |
 |---|---|
 | Data Lead | Validate the integrated dataset shape, date range, ticker coverage, and missing values after combining all sources. |
@@ -87,6 +89,8 @@ Team Roles:
 ## Week 4: Feature Engineering and Exploratory Data Analysis
 
 **Goal:** Create model-ready features and use EDA to check whether the features make sense.
+
+**Status:** Complete.
 
 | Team Member | Tasks |
 |---|---|
@@ -107,6 +111,8 @@ Team Roles:
 
 **Goal:** Build and evaluate the first future volatility prediction model.
 
+**Status:** Complete.
+
 | Team Member | Tasks |
 |---|---|
 | Data Lead | Prepare train/test datasets using a time-based split. |
@@ -125,6 +131,8 @@ Team Roles:
 ## Week 6: Portfolio Optimization and Evaluation
 
 **Goal:** Use predicted volatility in portfolio construction and compare against baselines.
+
+**Status:** Complete.
 
 | Team Member | Tasks |
 |---|---|
@@ -145,6 +153,8 @@ Team Roles:
 
 **Goal:** Build the first usable dashboard version for exploring model and portfolio results.
 
+**Status:** Complete.
+
 | Team Member | Tasks |
 |---|---|
 | Data Lead | Make sure final data files load correctly into the dashboard. |
@@ -163,6 +173,8 @@ Team Roles:
 ## Week 8: Report and Project Polish
 
 **Goal:** Polish the dashboard, report, README, and project narrative.
+
+**Status:** In progress.
 
 | Team Member | Tasks |
 |---|---|
@@ -183,6 +195,8 @@ Team Roles:
 
 **Goal:** Prepare the dashboard demo, report, slides, and final explanation for each project area.
 
+**Status:** Not started.
+
 | Team Member | Tasks |
 |---|---|
 | Data Lead | Prepare a short explanation of the data sources, cleaning, preprocessing, and integration decisions. |
@@ -201,6 +215,8 @@ Team Roles:
 ## Week 10: Final Submission and Buffer
 
 **Goal:** Finish any last fixes, rehearse the presentation, and submit the final project.
+
+**Status:** Not started.
 
 | Team Member | Tasks |
 |---|---|
@@ -221,18 +237,21 @@ Team Roles:
 
 By the end of the project, the team should have:
 
-- Raw and cleaned market data
-- Sector data for diversification analysis
-- Risk-free rate data for Sharpe ratio calculations
-- Feature-engineered modeling dataset
-- EDA notebook or script
-- Volatility prediction model
-- Portfolio optimization notebook or script
-- Evaluation metrics for predictive model and portfolio strategies
-- Streamlit dashboard or interactive dashboard
-- Final README/documentation
-- Final report
-- Final presentation slides
+- [x] Raw and cleaned market data
+- [x] Sector data for diversification analysis
+- [x] Risk-free rate data for Sharpe ratio calculations
+- [x] Feature-engineered modeling dataset
+- [x] Selected feature list for the main all-ticker models
+- [x] EDA notebooks for the source datasets
+- [ ] EDA analysis report merged into `main` (PR #28)
+- [x] Volatility prediction models: Linear Regression, Ridge Regression, Random Forest, Gradient Boosting, and GARCH
+- [ ] Neural Network MLP comparison model merged into `main` (PR #27)
+- [x] Portfolio optimization notebook and reusable optimizer helper module
+- [x] Evaluation metrics for predictive models and portfolio strategies
+- [x] Streamlit dashboard with model, prediction, portfolio, and Live Optimizer pages
+- [ ] Final README/documentation polish
+- [ ] Final report
+- [ ] Final presentation slides
 
 ---
 

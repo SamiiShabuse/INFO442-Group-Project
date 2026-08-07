@@ -6,7 +6,8 @@ This folder contains project planning notes and supporting documentation.
 
 - `project_scope.md` explains the project idea, goals, and framing.
 - `why_this_project_works.md` explains why the project is feasible and useful.
-- `weekly_summary.md` tracks weekly progress.
+- `weekly_summary/` tracks weekly progress.
+- `analysis_reports/` stores longer analysis writeups, including model and feature-selection summaries.
 - `class_syllabus.md` stores course context and requirements.
 
 ## What Belongs Here

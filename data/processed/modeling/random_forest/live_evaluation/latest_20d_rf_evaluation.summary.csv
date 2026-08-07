@@ -1,0 +1,2 @@
+evaluation_feature_date,horizon_trading_days,tickers,latest_market_date_in_snapshot,mean_future_window_start,mean_future_window_end,MAE,RMSE,R2
+2026-07-08,20,21,2026-08-05,2026-07-09,2026-08-05,0.004990276985821022,0.008092042166471188,0.2965251159537603

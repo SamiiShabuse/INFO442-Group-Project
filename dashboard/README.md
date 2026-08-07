@@ -32,21 +32,20 @@ The dashboard uses cleaned project outputs from `data/processed/`, especially:
 
 ## Model Connections
 
-The Model Comparison page reads:
+The Model Comparison page reads the refreshed comparison tables from
+`data/processed/model_comparison/`. It includes Linear Regression, Ridge
+Regression, Random Forest, Gradient Boosting, and Neural Network MLP. GARCH is
+displayed separately because it was evaluated only on SPY.
 
-- `data/processed/model_comparison/all_ticker_model_comparison_metrics.csv`
-- `data/processed/model_comparison/garch_spy_comparison_metrics.csv`
+The Prediction Explorer reads each model's `test_predictions.csv` file and
+supports all five all-ticker models, including the MLP.
 
-The Prediction Explorer reads each model's `test_predictions.csv` file from `data/processed/modeling/`. It currently supports:
-
-- Linear Regression
-- Ridge Regression
-- Random Forest
-- Gradient Boosting
+The Live Optimizer intentionally uses Random Forest predicted volatility
+combined with historical correlations. Random Forest remains the best
+all-ticker volatility model by MAE, RMSE, and R2; the MLP is included as a
+comparison model but is not used for portfolio construction.
 
 The Portfolio Strategies page reads the saved outputs from `data/processed/portfolio_optimization/`.
-
-The Live Optimizer builds a portfolio on demand using Random Forest predicted volatility combined with historical asset correlations. Random Forest is used because it is currently the strongest all-ticker volatility model by MAE, RMSE, and R2.
 
 ## Refreshing Outputs
 

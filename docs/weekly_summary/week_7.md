@@ -11,6 +11,8 @@
 - Wrote it all up in a clean modeling doc with the model breakdowns, honest metrics table, and flagged that 2 of the notebooks still need to be rerun with the better feature set before final submission
 
 **Jeffrey**
+- Built the 18-slide final presentation deck, pulling all numbers directly from data/processed/ so the slides can't drift from the notebook outputs
+
 
 **Joel**
 

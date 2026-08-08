@@ -11,7 +11,8 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
-from portfolio_risk.config import BENCHMARK, TRADING_DAYS
+from portfolio_risk.config import BENCHMARK as BENCHMARK
+from portfolio_risk.config import TRADING_DAYS
 
 
 def load_returns_matrix(integrated_path: Path) -> pd.DataFrame:
@@ -161,11 +162,13 @@ def optimize_portfolio(
     constraints = {"type": "eq", "fun": lambda weights: np.sum(weights) - 1}
 
     if objective == "min_volatility":
-        objective_fn = lambda weights: portfolio_volatility(weights, covariance_matrix)
+        def objective_fn(weights):
+            return portfolio_volatility(weights, covariance_matrix)
     elif objective == "max_sharpe":
-        objective_fn = lambda weights: -portfolio_sharpe(
-            weights, mean_returns, covariance_matrix, risk_free_rate
-        )
+        def objective_fn(weights):
+            return -portfolio_sharpe(
+                weights, mean_returns, covariance_matrix, risk_free_rate
+            )
     else:
         raise ValueError("objective must be 'min_volatility' or 'max_sharpe'")
 

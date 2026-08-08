@@ -8,14 +8,19 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from order_generation import generate_rebalance_orders, load_current_positions, load_latest_prices
-from portfolio_optimizer import (
+from portfolio_risk.orders import (
+    generate_rebalance_orders,
+    load_current_positions,
+    load_latest_prices,
+)
+from portfolio_risk.portfolio import (
     BENCHMARK,
     build_rf_predicted_covariance_matrix,
     load_returns_matrix,
     load_risk_free_rate,
     optimize_portfolio,
 )
+from portfolio_risk.paths import PORTFOLIO_OPTIMIZATION_DIR
 
 def load_live_predictions(path: Path, include_benchmark: bool) -> tuple[pd.Timestamp, pd.DataFrame, list[str]]:
     predictions = pd.read_csv(path, index_col=0, parse_dates=True)
@@ -69,13 +74,11 @@ def main(args):
 
     target_weights = pd.Series(result.x, index=assets, name="target_weight").sort_values(ascending=False)
 
-    portfolio_path = PROJECT_ROOT / "data" / "processed" / "portfolio_optimization"
-
     weights_out = Path(args.weights_out) if args.weights_out else (
-        portfolio_path / "live_weights" / f"target_weights_{prediction_date.date()}.csv"
+        PORTFOLIO_OPTIMIZATION_DIR / "live_weights" / f"target_weights_{prediction_date.date()}.csv"
     )
     orders_out = Path(args.orders_out) if args.orders_out else (
-        portfolio_path / "paper_orders" / f"rebalance_orders_{prediction_date.date()}.csv"
+        PORTFOLIO_OPTIMIZATION_DIR / "paper_orders" / f"rebalance_orders_{prediction_date.date()}.csv"
     )
 
     weights_out.parent.mkdir(parents=True, exist_ok=True)

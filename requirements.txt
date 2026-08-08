@@ -11,3 +11,5 @@ pandas-datareader
 arch
 jupyter
 notebook
+pytest
+ruff

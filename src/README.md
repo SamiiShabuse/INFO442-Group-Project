@@ -1,8 +1,11 @@
 # Source Code Folder
 
-This folder is for reusable Python code that supports the notebooks and dashboard.
+This folder contains reusable Python code that supports the notebooks, scripts,
+and dashboard.
 
-Right now, most project logic still lives in notebooks. As the project matures, repeated or important logic should move here so it can be imported and reused.
+The project now uses a package-style layout under `src/portfolio_risk/`. New
+shared logic should go into that package instead of being copied into notebooks
+or standalone scripts.
 
 ## What Belongs Here
 
@@ -24,13 +27,54 @@ Right now, most project logic still lives in notebooks. As the project matures, 
 
 ## Intended Relationship With Notebooks
 
-Notebooks in `notebooks/` should explain and run the workflow. Shared implementation details should eventually live in `src/`, then be imported into notebooks and the dashboard.
+Notebooks in `notebooks/` should explain and visualize the workflow. Shared
+implementation details should live in `src/portfolio_risk/`, then be imported
+by notebooks, command-line scripts, and the dashboard.
 
-## Current Modules
+## Current Package Layout
 
-- `portfolio_optimizer.py`: reusable portfolio math, risk/return metrics, Random Forest predictive covariance construction, and optimization.
-- `order_generation.py`: reusable logic for converting target weights into dry-run buy/sell/hold rebalance orders.
+```text
+portfolio_risk/
+    __init__.py
+    config.py
+    data_fetching.py
+    evaluation.py
+    features.py
+    modeling.py
+    orders.py
+    paths.py
+    portfolio.py
+```
+
+- `portfolio_risk.config`: shared constants for trading days, benchmark ticker,
+  date/ticker columns, model target, prediction, and actual-volatility columns.
+- `portfolio_risk.data_fetching`: destination for external Yahoo/FRED data
+  fetching utilities.
+- `portfolio_risk.evaluation`: destination for completed-window model
+  evaluation and trailing-volatility comparison utilities.
+- `portfolio_risk.features`: destination for reusable feature engineering.
+- `portfolio_risk.modeling`: destination for model training, feature
+  validation, and prediction helpers.
+- `portfolio_risk.orders`: reusable logic for converting target weights into
+  dry-run buy/sell/hold rebalance orders.
+- `portfolio_risk.paths`: shared project paths for data, notebooks, docs,
+  scripts, model outputs, live predictions, and paper-order outputs.
+- `portfolio_risk.portfolio`: reusable portfolio math, risk/return metrics,
+  Random Forest predictive covariance construction, and optimization.
 
 The order-generation module does not submit real trades. It creates structured
 CSV outputs that can be reviewed, visualized, or used later by a separate paper
 trading integration.
+
+## Compatibility Wrappers
+
+The older top-level modules still exist for now:
+
+```text
+portfolio_optimizer.py
+order_generation.py
+```
+
+They re-export the new package modules so older notebooks or scripts do not
+break immediately. New code should import from `portfolio_risk.portfolio` and
+`portfolio_risk.orders` directly.

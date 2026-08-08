@@ -16,37 +16,26 @@ target.
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-TARGET_COLUMN = "future_volatility_20d"
+from portfolio_risk.config import TARGET_COLUMN  # noqa: E402
+from portfolio_risk.evaluation import regression_metrics  # noqa: E402
+from portfolio_risk.modeling import load_selected_features  # noqa: E402
+
 DEFAULT_SPLIT_DATE = "2024-01-01"
 DEFAULT_MAX_DEPTH = 16
 DEFAULT_MIN_SAMPLES_LEAF = 100
-
-
-def load_selected_features(path: Path) -> list[str]:
-    selected_features = pd.read_csv(path)
-    if "feature" not in selected_features.columns:
-        raise SystemExit("selected features CSV must contain a 'feature' column")
-
-    features = selected_features["feature"].dropna().astype(str).tolist()
-    if not features:
-        raise SystemExit("selected features CSV did not contain any features")
-
-    if TARGET_COLUMN in features:
-        raise SystemExit(f"selected features must not include target column '{TARGET_COLUMN}'")
-
-    return features
 
 
 def load_modeling_data(features_path: Path, selected_features: list[str]) -> pd.DataFrame:
@@ -70,14 +59,6 @@ def load_modeling_data(features_path: Path, selected_features: list[str]) -> pd.
         raise SystemExit("No complete training rows found after dropping missing values")
 
     return model_df
-
-
-def evaluate_predictions(y_true: pd.Series, y_pred: np.ndarray) -> dict[str, float]:
-    return {
-        "MAE": float(mean_absolute_error(y_true, y_pred)),
-        "RMSE": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "R2": float(r2_score(y_true, y_pred)),
-    }
 
 
 def main(
@@ -162,10 +143,10 @@ def main(
     print("Model params:", best_params)
 
     test_predictions = holdout_model.predict(X_test)
-    rf_metrics = evaluate_predictions(y_test, test_predictions)
+    rf_metrics = regression_metrics(y_test, test_predictions)
 
     if "rolling_volatility_20d" in test_df.columns:
-        baseline_metrics = evaluate_predictions(y_test, test_df["rolling_volatility_20d"])
+        baseline_metrics = regression_metrics(y_test, test_df["rolling_volatility_20d"])
     else:
         baseline_metrics = None
 

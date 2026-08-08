@@ -109,6 +109,18 @@ Potential tools and libraries:
 - plotly
 - Streamlit
 - yfinance or another financial data source
+- pytest
+- ruff
+
+## Developer Checks
+
+After installing dependencies, run these checks before opening a pull request:
+
+```powershell
+python -m pytest
+python -m ruff check src scripts dashboard tests
+python -m compileall -q scripts src\portfolio_risk
+```
 
 ## Scope
 

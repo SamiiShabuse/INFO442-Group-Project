@@ -13,85 +13,20 @@ Example:
 """
 
 import argparse
+import sys
 from pathlib import Path
 
-import joblib
-import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-ACTUAL_COLUMN = "actual_future_volatility_20d"
-PREDICTED_COLUMN = "predicted_future_volatility_20d"
-
-
-def load_selected_features(path: Path) -> list[str]:
-    selected_features = pd.read_csv(path)
-    if "feature" not in selected_features.columns:
-        raise SystemExit("selected features CSV must contain a 'feature' column")
-
-    features = selected_features["feature"].dropna().astype(str).tolist()
-    if not features:
-        raise SystemExit("selected features CSV did not contain any features")
-
-    return features
-
-
-def validate_model_features(model, selected_features: list[str]) -> None:
-    model_features = getattr(model, "feature_names_in_", None)
-    if model_features is None:
-        return
-
-    model_features = list(model_features)
-    if model_features != selected_features:
-        raise SystemExit(
-            "Selected features do not match the model's fitted feature order. "
-            f"Model expects {model_features}, but selected CSV provides {selected_features}."
-        )
-
-
-def add_future_window_actuals(df: pd.DataFrame, horizon: int) -> pd.DataFrame:
-    df = df.sort_values(["ticker", "Date"]).copy()
-    df["daily_return"] = pd.to_numeric(df["daily_return"], errors="coerce")
-    df[ACTUAL_COLUMN] = (
-        df.groupby("ticker")["daily_return"]
-        .transform(lambda returns: returns.rolling(window=horizon).std().shift(-horizon))
-    )
-    df["future_window_start"] = df.groupby("ticker")["Date"].shift(-1)
-    df["future_window_end"] = df.groupby("ticker")["Date"].shift(-horizon)
-    return df
-
-
-def choose_evaluation_date(
-    df: pd.DataFrame,
-    selected_features: list[str],
-    requested_date: str | None,
-    min_tickers: int | None,
-) -> pd.Timestamp:
-    required_columns = selected_features + [ACTUAL_COLUMN]
-    complete_rows = df.dropna(subset=required_columns).copy()
-
-    if complete_rows.empty:
-        raise SystemExit("No rows have both complete features and a realized future-volatility target")
-
-    if requested_date:
-        eval_date = pd.Timestamp(requested_date).normalize()
-        rows_on_date = complete_rows[complete_rows["Date"] == eval_date]
-        if rows_on_date.empty:
-            raise SystemExit(f"No complete evaluation rows found for {eval_date.date()}")
-        return eval_date
-
-    ticker_count = df["ticker"].nunique()
-    required_tickers = min_tickers or ticker_count
-    complete_counts = complete_rows.groupby("Date")["ticker"].nunique()
-    eligible_dates = complete_counts[complete_counts >= required_tickers]
-
-    if eligible_dates.empty:
-        raise SystemExit(
-            f"No evaluation date had at least {required_tickers} tickers with complete realized windows"
-        )
-
-    return pd.Timestamp(eligible_dates.index.max()).normalize()
+from portfolio_risk.config import (  # noqa: E402
+    ACTUAL_VOLATILITY_COLUMN,
+    PREDICTED_VOLATILITY_COLUMN,
+)
+from portfolio_risk.evaluation import evaluate_completed_future_window  # noqa: E402
+from portfolio_risk.modeling import load_predictive_model, load_selected_features  # noqa: E402
 
 
 def main(
@@ -115,65 +50,18 @@ def main(
 
     selected_features = load_selected_features(selected_features_path)
     df = pd.read_csv(features_path, parse_dates=["Date"], low_memory=False)
-    df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
 
-    missing_columns = [column for column in selected_features + ["daily_return"] if column not in df.columns]
-    if missing_columns:
-        raise SystemExit(f"Feature snapshot is missing columns: {missing_columns}")
-
-    for column in selected_features:
-        df[column] = pd.to_numeric(df[column], errors="coerce")
-
-    df = add_future_window_actuals(df, horizon)
-    chosen_date = choose_evaluation_date(df, selected_features, eval_date, min_tickers)
-
-    evaluation_rows = (
-        df[df["Date"] == chosen_date]
-        .dropna(subset=selected_features + [ACTUAL_COLUMN])
-        .sort_values("ticker")
-        .copy()
+    model = load_predictive_model(model_path)
+    evaluation_rows, summary = evaluate_completed_future_window(
+        features=df,
+        model=model,
+        selected_features=selected_features,
+        horizon=horizon,
+        eval_date=eval_date,
+        min_tickers=min_tickers,
     )
 
-    if evaluation_rows.empty:
-        raise SystemExit(f"No complete rows to evaluate on {chosen_date.date()}")
-
-    model = joblib.load(model_path)
-    if not hasattr(model, "predict"):
-        raise SystemExit("Loaded model object does not have a predict method")
-    validate_model_features(model, selected_features)
-
-    X = evaluation_rows[selected_features]
-    evaluation_rows[PREDICTED_COLUMN] = model.predict(X)
-    evaluation_rows["error"] = evaluation_rows[ACTUAL_COLUMN] - evaluation_rows[PREDICTED_COLUMN]
-    evaluation_rows["absolute_error"] = evaluation_rows["error"].abs()
-    evaluation_rows["squared_error"] = evaluation_rows["error"] ** 2
-
-    y_true = evaluation_rows[ACTUAL_COLUMN]
-    y_pred = evaluation_rows[PREDICTED_COLUMN]
-    summary = {
-        "evaluation_feature_date": chosen_date.date().isoformat(),
-        "horizon_trading_days": horizon,
-        "tickers": int(len(evaluation_rows)),
-        "latest_market_date_in_snapshot": df["Date"].max().date().isoformat(),
-        "mean_future_window_start": evaluation_rows["future_window_start"].min().date().isoformat(),
-        "mean_future_window_end": evaluation_rows["future_window_end"].max().date().isoformat(),
-        "MAE": float(mean_absolute_error(y_true, y_pred)),
-        "RMSE": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "R2": float(r2_score(y_true, y_pred)) if len(evaluation_rows) > 1 else np.nan,
-    }
-
-    output_columns = [
-        "Date",
-        "ticker",
-        "future_window_start",
-        "future_window_end",
-        PREDICTED_COLUMN,
-        ACTUAL_COLUMN,
-        "error",
-        "absolute_error",
-        "squared_error",
-    ]
-    evaluation_rows[output_columns].to_csv(out_path, index=False)
+    evaluation_rows.to_csv(out_path, index=False)
     pd.DataFrame([summary]).to_csv(summary_out_path, index=False)
 
     print("Wrote detailed evaluation to:", out_path)
@@ -182,7 +70,12 @@ def main(
     print("\nLargest absolute errors:")
     print(
         evaluation_rows[
-            ["ticker", PREDICTED_COLUMN, ACTUAL_COLUMN, "absolute_error"]
+            [
+                "ticker",
+                PREDICTED_VOLATILITY_COLUMN,
+                ACTUAL_VOLATILITY_COLUMN,
+                "absolute_error",
+            ]
         ]
         .sort_values("absolute_error", ascending=False)
         .head(8)

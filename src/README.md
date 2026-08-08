@@ -50,11 +50,12 @@ portfolio_risk/
   date/ticker columns, model target, prediction, and actual-volatility columns.
 - `portfolio_risk.data_fetching`: destination for external Yahoo/FRED data
   fetching utilities.
-- `portfolio_risk.evaluation`: destination for completed-window model
-  evaluation and trailing-volatility comparison utilities.
+- `portfolio_risk.evaluation`: completed-window model evaluation,
+  trailing-volatility comparison, and shared regression metric utilities.
 - `portfolio_risk.features`: destination for reusable feature engineering.
-- `portfolio_risk.modeling`: destination for model training, feature
-  validation, and prediction helpers.
+- `portfolio_risk.modeling`: selected-feature loading, date-column detection,
+  model validation, model loading, feature matrix construction, and prediction
+  frame helpers.
 - `portfolio_risk.orders`: reusable logic for converting target weights into
   dry-run buy/sell/hold rebalance orders.
 - `portfolio_risk.paths`: shared project paths for data, notebooks, docs,

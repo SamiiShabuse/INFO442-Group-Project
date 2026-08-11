@@ -1,0 +1,4 @@
+skill_type,random_forest,baseline
+Pooled R2 (both effects combined),0.3389655789128194,0.0015102059479311647
+Within-ticker R2 (time-series skill only),0.02671241754766107,-0.6202051880994113
+Cross-sectional rank corr (ranking skill only),0.7249879288900044,0.6523719523719523

@@ -14,8 +14,11 @@ from portfolio_risk.evaluation import (
     choose_evaluation_date,
     compare_prediction_to_trailing_volatility,
     evaluate_completed_future_window,
+    largest_absolute_error_table,
+    largest_trailing_difference_table,
     load_prediction_row,
     regression_metrics,
+    resolve_summary_output_path,
 )
 
 
@@ -139,3 +142,58 @@ def test_compare_prediction_to_trailing_volatility_summarizes_differences():
     assert summary["tickers"] == 2
     assert math.isclose(summary["mean_absolute_difference"], 0.15)
     assert TRAILING_VOLATILITY_COLUMN in comparison.columns
+
+
+def test_resolve_summary_output_path_defaults_and_accepts_override():
+    assert resolve_summary_output_path("reports/detail.csv", None).name == "detail.summary.csv"
+    assert (
+        resolve_summary_output_path("reports/detail.csv", "custom_summary.csv").name
+        == "custom_summary.csv"
+    )
+
+
+def test_largest_absolute_error_table_sorts_and_limits_rows():
+    evaluation_rows = pd.DataFrame(
+        {
+            "ticker": ["AAPL", "MSFT", "GLD"],
+            PREDICTED_VOLATILITY_COLUMN: [0.10, 0.20, 0.30],
+            ACTUAL_VOLATILITY_COLUMN: [0.11, 0.50, 0.31],
+            "absolute_error": [0.01, 0.30, 0.01],
+        }
+    )
+
+    preview = largest_absolute_error_table(evaluation_rows, limit=2)
+
+    assert list(preview["ticker"]) == ["MSFT", "AAPL"]
+    assert list(preview.columns) == [
+        "ticker",
+        PREDICTED_VOLATILITY_COLUMN,
+        ACTUAL_VOLATILITY_COLUMN,
+        "absolute_error",
+    ]
+
+
+def test_largest_trailing_difference_table_uses_cli_preview_columns():
+    comparison = pd.DataFrame(
+        {
+            "ticker": ["AAPL", "MSFT"],
+            PREDICTED_VOLATILITY_COLUMN: [0.20, 0.10],
+            TRAILING_VOLATILITY_COLUMN: [0.10, 0.30],
+            "prediction_minus_trailing": [0.10, -0.20],
+            "absolute_difference": [0.10, 0.20],
+            "ratio_predicted_to_trailing": [2.0, 1 / 3],
+            "extra_column": ["ignore", "ignore"],
+        }
+    )
+
+    preview = largest_trailing_difference_table(comparison, limit=1)
+
+    assert list(preview["ticker"]) == ["MSFT"]
+    assert list(preview.columns) == [
+        "ticker",
+        PREDICTED_VOLATILITY_COLUMN,
+        TRAILING_VOLATILITY_COLUMN,
+        "prediction_minus_trailing",
+        "absolute_difference",
+        "ratio_predicted_to_trailing",
+    ]

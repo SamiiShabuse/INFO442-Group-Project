@@ -1,5 +1,8 @@
 """Model evaluation utilities."""
 
+from dataclasses import dataclass
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -10,10 +13,40 @@ from portfolio_risk.config import (
     PREDICTED_VOLATILITY_COLUMN,
     TICKER_COLUMN,
 )
-from portfolio_risk.modeling import validate_model_features
+from portfolio_risk.modeling import (
+    load_predictive_model,
+    load_selected_features,
+    validate_model_features,
+)
 
 
 TRAILING_VOLATILITY_COLUMN = "trailing_volatility_20d"
+
+
+@dataclass(frozen=True)
+class CompletedFutureWindowEvaluationRunResult:
+    """File-backed completed-window evaluation result."""
+
+    evaluation_rows: pd.DataFrame
+    summary: dict
+    out_path: Path
+    summary_out_path: Path
+
+
+@dataclass(frozen=True)
+class TrailingVolatilityComparisonRunResult:
+    """File-backed RF-vs-trailing-volatility comparison result."""
+
+    comparison: pd.DataFrame
+    summary: dict
+    out_path: Path
+    summary_out_path: Path
+
+
+def resolve_summary_output_path(out_path: str | Path, summary_out: str | Path | None) -> Path:
+    """Use an explicit summary path or default to the output path with .summary.csv."""
+    out_path = Path(out_path)
+    return Path(summary_out) if summary_out else out_path.with_suffix(".summary.csv")
 
 
 def regression_metrics(y_true: pd.Series, y_pred) -> dict[str, float]:
@@ -249,3 +282,119 @@ def compare_prediction_to_trailing_volatility(
     }
 
     return comparison, summary
+
+
+def largest_absolute_error_table(evaluation_rows: pd.DataFrame, limit: int = 8) -> pd.DataFrame:
+    """Return the columns printed by the completed-window evaluation script."""
+    return (
+        evaluation_rows[
+            [
+                TICKER_COLUMN,
+                PREDICTED_VOLATILITY_COLUMN,
+                ACTUAL_VOLATILITY_COLUMN,
+                "absolute_error",
+            ]
+        ]
+        .sort_values("absolute_error", ascending=False)
+        .head(limit)
+    )
+
+
+def largest_trailing_difference_table(comparison: pd.DataFrame, limit: int = 10) -> pd.DataFrame:
+    """Return the columns printed by the trailing-volatility comparison script."""
+    return (
+        comparison[
+            [
+                TICKER_COLUMN,
+                PREDICTED_VOLATILITY_COLUMN,
+                TRAILING_VOLATILITY_COLUMN,
+                "prediction_minus_trailing",
+                "absolute_difference",
+                "ratio_predicted_to_trailing",
+            ]
+        ]
+        .sort_values("absolute_difference", ascending=False)
+        .head(limit)
+    )
+
+
+def run_completed_future_window_evaluation(
+    *,
+    model_path: str | Path,
+    features_path: str | Path,
+    selected_features_path: str | Path,
+    out_path: str | Path,
+    summary_out: str | Path | None = None,
+    horizon: int = 20,
+    eval_date: str | None = None,
+    min_tickers: int | None = None,
+) -> CompletedFutureWindowEvaluationRunResult:
+    """Load project files, evaluate a completed future window, and write CSV outputs."""
+    model_path = Path(model_path)
+    features_path = Path(features_path)
+    selected_features_path = Path(selected_features_path)
+    out_path = Path(out_path)
+    summary_out_path = resolve_summary_output_path(out_path, summary_out)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    selected_features = load_selected_features(selected_features_path)
+    features = pd.read_csv(features_path, parse_dates=[DATE_COLUMN], low_memory=False)
+    model = load_predictive_model(model_path)
+
+    evaluation_rows, summary = evaluate_completed_future_window(
+        features=features,
+        model=model,
+        selected_features=selected_features,
+        horizon=horizon,
+        eval_date=eval_date,
+        min_tickers=min_tickers,
+    )
+
+    evaluation_rows.to_csv(out_path, index=False)
+    pd.DataFrame([summary]).to_csv(summary_out_path, index=False)
+
+    return CompletedFutureWindowEvaluationRunResult(
+        evaluation_rows=evaluation_rows,
+        summary=summary,
+        out_path=out_path,
+        summary_out_path=summary_out_path,
+    )
+
+
+def run_trailing_volatility_comparison(
+    *,
+    features_path: str | Path,
+    predictions_path: str | Path,
+    feature_date: str,
+    out_path: str | Path,
+    summary_out_path: str | Path | None = None,
+) -> TrailingVolatilityComparisonRunResult:
+    """Load project files, compare RF predictions to trailing vol, and write CSV outputs."""
+    features_path = Path(features_path)
+    predictions_path = Path(predictions_path)
+    out_path = Path(out_path)
+    summary_path = resolve_summary_output_path(out_path, summary_out_path)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+
+    features = pd.read_csv(features_path, parse_dates=[DATE_COLUMN], low_memory=False)
+    prediction_target_date, predictions = load_prediction_row(predictions_path)
+    comparison, summary = compare_prediction_to_trailing_volatility(
+        features=features,
+        predictions=predictions,
+        prediction_target_date=prediction_target_date,
+        feature_date=feature_date,
+    )
+
+    comparison.to_csv(out_path, index=False)
+    pd.DataFrame([summary]).to_csv(summary_path, index=False)
+
+    return TrailingVolatilityComparisonRunResult(
+        comparison=comparison,
+        summary=summary,
+        out_path=out_path,
+        summary_out_path=summary_path,
+    )

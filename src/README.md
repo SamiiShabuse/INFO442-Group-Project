@@ -54,7 +54,8 @@ portfolio_risk/
 - `portfolio_risk.data_fetching`: Yahoo chart and FRED macro data fetching
   utilities used by the live feature refresh workflow.
 - `portfolio_risk.evaluation`: completed-window model evaluation,
-  trailing-volatility comparison, and shared regression metric utilities.
+  trailing-volatility comparison, file-backed evaluation workflows, and shared
+  regression metric utilities.
 - `portfolio_risk.features`: latest feature snapshot refresh logic, macro
   context merging, ticker loading, and rolling market feature engineering.
 - `portfolio_risk.modeling`: selected-feature loading, date-column detection,

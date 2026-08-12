@@ -18,14 +18,13 @@ from pathlib import Path
 
 import pandas as pd
 
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from portfolio_risk.config import PREDICTED_VOLATILITY_COLUMN  # noqa: E402
 from portfolio_risk.evaluation import (  # noqa: E402
-    TRAILING_VOLATILITY_COLUMN,
-    compare_prediction_to_trailing_volatility,
-    load_prediction_row,
+    largest_trailing_difference_table,
+    run_trailing_volatility_comparison,
 )
 
 
@@ -36,48 +35,25 @@ def main(
     out_path: str,
     summary_out_path: str | None,
 ) -> None:
-    features_path = Path(features_path)
-    predictions_path = Path(predictions_path)
-    out_path = Path(out_path)
-    summary_path = Path(summary_out_path) if summary_out_path else out_path.with_suffix(".summary.csv")
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
-
-    features = pd.read_csv(features_path, parse_dates=["Date"], low_memory=False)
-    prediction_target_date, predictions = load_prediction_row(predictions_path)
-    comparison, summary = compare_prediction_to_trailing_volatility(
-        features=features,
-        predictions=predictions,
-        prediction_target_date=prediction_target_date,
+    result = run_trailing_volatility_comparison(
+        features_path=features_path,
+        predictions_path=predictions_path,
         feature_date=feature_date,
+        out_path=out_path,
+        summary_out_path=summary_out_path,
     )
 
-    comparison.to_csv(out_path, index=False)
-    pd.DataFrame([summary]).to_csv(summary_path, index=False)
-
-    print("Wrote comparison to:", out_path)
-    print("Wrote summary to:", summary_path)
-    print(pd.DataFrame([summary]).T)
+    print("Wrote comparison to:", result.out_path)
+    print("Wrote summary to:", result.summary_out_path)
+    print(pd.DataFrame([result.summary]).T)
     print("\nLargest differences:")
-    print(
-        comparison[
-            [
-                "ticker",
-                PREDICTED_VOLATILITY_COLUMN,
-                TRAILING_VOLATILITY_COLUMN,
-                "prediction_minus_trailing",
-                "absolute_difference",
-                "ratio_predicted_to_trailing",
-            ]
-        ]
-        .head(10)
-        .to_string(index=False)
-    )
+    print(largest_trailing_difference_table(result.comparison).to_string(index=False))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compare RF prediction with trailing 20-day volatility.")
+    parser = argparse.ArgumentParser(
+        description="Compare RF prediction with trailing 20-day volatility."
+    )
     parser.add_argument(
         "--features",
         default="data/processed/features/latest_feature_snapshot.csv",

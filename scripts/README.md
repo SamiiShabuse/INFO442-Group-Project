@@ -66,7 +66,8 @@ or generated CSVs in `reports/`.
 
 ### `train_rf_model.py`
 
-Trains and exports the Random Forest model.
+Trains and exports the Random Forest model. The script is a command-line
+wrapper around the reusable `portfolio_risk.training` workflow.
 
 Inputs:
 

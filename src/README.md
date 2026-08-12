@@ -47,6 +47,7 @@ portfolio_risk/
     prediction.py
     prediction_archive.py
     rebalancing.py
+    training.py
 ```
 
 - `portfolio_risk.config`: shared constants for trading days, benchmark ticker,
@@ -75,6 +76,9 @@ portfolio_risk/
 - `portfolio_risk.rebalancing`: reusable RF-driven rebalance workflow for
   loading live predictions, optimizing target weights, and creating dry-run
   order outputs.
+- `portfolio_risk.training`: reusable Random Forest training workflow for
+  loading labeled feature rows, time-splitting train/test data, fitting the
+  holdout/final models, and exporting model metrics and metadata.
 
 The order-generation module does not submit real trades. It creates structured
 CSV outputs that can be reviewed, visualized, or used later by a separate paper

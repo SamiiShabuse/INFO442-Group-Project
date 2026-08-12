@@ -44,6 +44,7 @@ portfolio_risk/
     orders.py
     paths.py
     portfolio.py
+    prediction.py
     rebalancing.py
 ```
 
@@ -64,6 +65,9 @@ portfolio_risk/
   scripts, model outputs, live predictions, and paper-order outputs.
 - `portfolio_risk.portfolio`: reusable portfolio math, risk/return metrics,
   Random Forest predictive covariance construction, and optimization.
+- `portfolio_risk.prediction`: latest-feature prediction workflow for loading
+  model inputs, validating feature order, generating RF volatility forecasts,
+  and formatting the wide prediction CSV.
 - `portfolio_risk.rebalancing`: reusable RF-driven rebalance workflow for
   loading live predictions, optimizing target weights, and creating dry-run
   order outputs.

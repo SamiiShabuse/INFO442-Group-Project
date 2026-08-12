@@ -45,6 +45,7 @@ portfolio_risk/
     paths.py
     portfolio.py
     prediction.py
+    prediction_archive.py
     rebalancing.py
 ```
 
@@ -68,6 +69,8 @@ portfolio_risk/
 - `portfolio_risk.prediction`: latest-feature prediction workflow for loading
   model inputs, validating feature order, generating RF volatility forecasts,
   and formatting the wide prediction CSV.
+- `portfolio_risk.prediction_archive`: reusable prediction archiving and
+  long-format prediction-log update helpers.
 - `portfolio_risk.rebalancing`: reusable RF-driven rebalance workflow for
   loading live predictions, optimizing target weights, and creating dry-run
   order outputs.

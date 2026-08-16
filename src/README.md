@@ -7,6 +7,9 @@ The project now uses a package-style layout under `src/portfolio_risk/`. New
 shared logic should go into that package instead of being copied into notebooks
 or standalone scripts.
 
+The high-level project story is documented in `../README.md` and
+`../docs/project_workflow.md`. This README focuses on the package boundaries.
+
 ## What Belongs Here
 
 - Data loading helpers
@@ -30,6 +33,14 @@ or standalone scripts.
 Notebooks in `notebooks/` should explain and visualize the workflow. Shared
 implementation details should live in `src/portfolio_risk/`, then be imported
 by notebooks, command-line scripts, and the dashboard.
+
+In other words:
+
+```text
+notebooks/ = narrative analysis and visuals
+scripts/   = repeatable command-line entry points
+src/       = tested reusable implementation
+```
 
 ## Current Package Layout
 

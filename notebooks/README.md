@@ -2,6 +2,11 @@
 
 This folder contains the main project workflow, organized in the order the pipeline should be run.
 
+For the polished project overview, start with `../README.md`. For a deeper
+explanation of how the notebook outputs connect to scripts, package code,
+dashboard pages, live evaluation, and dry-run orders, see
+`../docs/project_workflow.md`.
+
 ## Folder Structure
 
 ```text

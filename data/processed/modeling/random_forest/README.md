@@ -1,16 +1,69 @@
 # Random Forest Modeling Outputs
 
-This folder contains the Random Forest model outputs.
+This folder contains the Random Forest outputs used by both the notebook
+analysis and the live prediction workflow.
 
-## Files
+Random Forest is the main live model because it is the strongest all-ticker
+volatility model in the project comparison. It predicts:
 
-- `metrics.csv`: notebook holdout metrics for the Random Forest model.
-- `test_predictions.csv`: notebook holdout predictions used for model comparison.
-- `rf_model.pkl`: exported model used by the live prediction scripts.
-- `rf_model.metrics.csv`: metrics from the exported model training script.
-- `rf_model.metadata.json`: training metadata for the exported model.
+```text
+future_volatility_20d
+```
 
-## Subfolders
+That prediction is an estimate of each asset's realized volatility over the
+next 20 trading days.
 
-- `live_predictions/`: latest and dated live prediction runs.
-- `live_evaluation/`: generated CSVs that compare predictions with realized or baseline volatility.
+## Notebook Outputs
+
+- `metrics.csv`: holdout metrics from the Random Forest modeling notebook.
+- `test_predictions.csv`: holdout predictions used for model comparison.
+
+These files support the model comparison notebook and dashboard.
+
+## Exported Live Model
+
+- `rf_model.pkl`: trained Random Forest artifact used by live scripts.
+- `rf_model.metrics.csv`: metrics from the repeatable training script.
+- `rf_model.metadata.json`: training metadata, selected features, split dates,
+  package versions, row counts, and holdout metrics.
+
+The exported model is created by:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_rf_model.py
+```
+
+## Live Predictions
+
+`live_predictions/` stores current and archived prediction runs:
+
+- `latest_preds.csv`: most recent wide prediction file.
+- `preds_YYYY-MM-DD.csv`: dated copy of a prediction run.
+- `prediction_log.csv`: long-format append-only prediction history.
+
+Generate and archive a new prediction run with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\generate_predictions.py `
+  --model data\processed\modeling\random_forest\rf_model.pkl `
+  --features data\processed\features\latest_feature_snapshot.csv `
+  --selected-features data\processed\features\selected_features.csv `
+  --out data\processed\modeling\random_forest\live_predictions\latest_preds.csv
+
+.\.venv\Scripts\python.exe scripts\archive_predictions.py
+```
+
+## Live Evaluation
+
+`live_evaluation/` stores CSV outputs used to understand whether live Random
+Forest predictions are behaving well.
+
+There are two evaluation styles:
+
+- Completed future-window evaluation: compares predictions to actual realized
+  future volatility after the next 20 trading days are available.
+- RF versus trailing volatility comparison: compares the prediction to recent
+  trailing 20-day volatility as a same-day baseline.
+
+The completed-window evaluation is the real accuracy test. The trailing
+comparison is useful context, but it is not a future accuracy score.

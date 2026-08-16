@@ -20,3 +20,6 @@ This folder is for polished project deliverables and presentation materials.
 - Dashboard app files
 
 Reports should explain the project clearly: the problem, data sources, processing pipeline, modeling methods, evaluation results, limitations, and final conclusions.
+
+Use `../README.md` and `../docs/project_workflow.md` as the source of truth for
+the current project story when writing final report sections.

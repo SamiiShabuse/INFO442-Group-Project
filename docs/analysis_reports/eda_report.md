@@ -1,6 +1,6 @@
 # Exploratory Data Analysis Report
 
-**Project:** Stock Market Analysis & Portfolio Optimization  
+**Project:** Stock Market Analysis & Portfolio Optimization
 **Date:** July 30, 2026
 
 **Repo:** [GitHub Link](https://github.com/SamiiShabuse/INFO442-Group-Project)
@@ -159,6 +159,19 @@ VIX behaved differently from the rate variables. Its absolute correlation with t
 The yield curve spread also provided distinct information. It had a moderate positive correlation of about 0.590 with unemployment, which suggests it may help describe changing macro conditions and possible recession risk.
 
 The source-level EDA does not use one final supervised target variable yet. Later modeling notebooks use engineered features to predict market volatility and compare model outputs for portfolio optimization. The EDA findings help decide which variables are useful before those modeling steps.
+
+## Key EDA Findings and How They Inform Later Decisions
+
+The main value of the EDA was identifying which patterns in the data should guide later feature engineering, model selection, and portfolio construction.
+
+| EDA Finding | What We Learned From the Data | Later Project Decision |
+| --- | --- | --- |
+| Asset returns and volatility vary widely across tickers. | High-return assets such as LLY, AAPL, MSFT, CAT, and AMZN also tend to have higher volatility and drawdown risk. | Portfolio construction should not rank assets by return alone; risk-adjusted metrics and volatility forecasts are needed. |
+| Some assets are highly correlated. | QQQ, SPY, MSFT, and AAPL show overlapping market exposure. | Portfolio optimization should account for covariance/correlation so the portfolio is not accidentally concentrated in similar assets. |
+| Bonds and defensive assets provide diversification. | TLT and AGG have lower or negative correlations with several equity assets. | Bond ETFs and defensive assets should remain in the asset universe because they may reduce total portfolio volatility. |
+| Macro variables capture different risk regimes. | VIX, recession flags, yield curve spread, and unemployment describe market stress differently from asset returns alone. | Macro indicators should be considered as context features for volatility modeling and risk analysis. |
+| Some interest-rate variables are redundant. | Risk-free rate, fed funds rate, and 10-year Treasury yield are highly correlated. | Feature selection should avoid blindly including all overlapping rate variables because they may add duplicate information. |
+| Sector metadata reveals possible concentration risk. | The portfolio includes assets across technology, financials, health care, energy, bonds, gold, and international exposure. | Later portfolio analysis should check whether optimized portfolios are diversified across sectors and asset types. |
 
 ## Hypotheses Generated
 

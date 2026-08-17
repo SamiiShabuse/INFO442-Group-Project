@@ -2,6 +2,13 @@
 
 This folder contains the Streamlit dashboard for the project.
 
+The dashboard is the presentation layer. It should read cleaned and generated
+outputs from `data/processed/`; it should not become the place where data
+cleaning, training, or portfolio optimization logic lives.
+
+For the full project workflow, see `../README.md` and
+`../docs/project_workflow.md`.
+
 Run it from the project root with:
 
 ```bash
@@ -49,12 +56,29 @@ The Portfolio Strategies page reads the saved outputs from `data/processed/portf
 
 ## Refreshing Outputs
 
-If feature engineering or model notebooks are rerun, rerun the downstream notebooks in order before launching the dashboard:
+If feature engineering or model notebooks are rerun, rerun the downstream
+notebooks in order before launching the dashboard:
 
 1. `notebooks/05_model_comparison/01_model_comparison.ipynb`
 2. `notebooks/06_portfolio_optimization/01_portfolio_optimization.ipynb`
 
 This keeps the dashboard tables and charts aligned with the newest model outputs.
+
+If you only want to refresh the live Random Forest workflow, use:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\refresh_latest_features.py
+
+.\.venv\Scripts\python.exe scripts\generate_predictions.py `
+  --model data\processed\modeling\random_forest\rf_model.pkl `
+  --features data\processed\features\latest_feature_snapshot.csv `
+  --selected-features data\processed\features\selected_features.csv `
+  --out data\processed\modeling\random_forest\live_predictions\latest_preds.csv
+
+.\.venv\Scripts\python.exe scripts\archive_predictions.py
+
+.\.venv\Scripts\python.exe scripts\generate_rebalance_orders.py --portfolio-value 100000
+```
 
 ## Notes
 

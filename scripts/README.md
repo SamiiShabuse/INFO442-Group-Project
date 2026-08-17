@@ -1,29 +1,37 @@
 # Scripts README
 
-This folder contains the runnable scripts for training the Random Forest model,
-refreshing current market features, generating predictions, saving prediction
-runs, evaluating the model, and creating dry-run portfolio rebalance orders.
+This folder contains the runnable command-line workflows for the project. The
+scripts are intentionally thin wrappers around reusable package code in
+`src/portfolio_risk/`.
+
+Use scripts when you want to rerun a repeatable production-style step, such as
+training the exported Random Forest model, refreshing current market features,
+generating live predictions, archiving a prediction run, evaluating live model
+behavior, or creating dry-run rebalance orders.
+
+For the full end-to-end story, see `../README.md` and
+`../docs/project_workflow.md`.
 
 The short version:
 
 ```text
 train_rf_model.py
-    makes the model
+    trains and exports the Random Forest model artifact
 
 refresh_latest_features.py
-    gets recent market data and builds model inputs
+    gets recent market data and builds latest model inputs
 
 generate_predictions.py
-    uses the model to make volatility predictions
+    uses the exported model to make future-volatility predictions
 
 archive_predictions.py
-    saves each prediction run so it is not overwritten
+    saves each prediction run so daily outputs are not overwritten
 
 evaluate_recent_rf_predictions.py
-    grades old predictions once the next 20 trading days have happened
+    grades predictions once the next 20 trading days have happened
 
 compare_prediction_to_trailing_vol.py
-    compares RF predictions to recent trailing volatility
+    compares RF predictions to recent trailing volatility as a baseline
 
 create_sample_current_positions.py
     creates a fake holdings file for rebalance-order testing
@@ -32,7 +40,7 @@ generate_rebalance_orders.py
     turns optimized portfolio weights into dry-run rebalance orders
 
 paper_trade.py
-    turns predictions into hypothetical/paper-trading orders
+    older prototype for hypothetical/paper-trading orders
 ```
 
 ## Important Idea
@@ -66,7 +74,8 @@ or generated CSVs in `reports/`.
 
 ### `train_rf_model.py`
 
-Trains and exports the Random Forest model.
+Trains and exports the Random Forest model. The script is a command-line
+wrapper around the reusable `portfolio_risk.training` workflow.
 
 Inputs:
 
@@ -301,6 +310,30 @@ Then, when enough future data exists to evaluate old predictions:
 ```powershell
 python scripts\evaluate_recent_rf_predictions.py
 ```
+
+## Script Versus Package Responsibility
+
+The script should handle:
+
+```text
+argument parsing
+calling one package workflow
+printing output paths and short summaries
+```
+
+The package should handle:
+
+```text
+data validation
+feature/prediction/evaluation logic
+portfolio math
+order creation
+file-backed workflow functions
+unit-testable behavior
+```
+
+This is why most scripts import from `portfolio_risk.*` instead of holding the
+real implementation directly.
 
 ## Which Script Answers Which Question?
 

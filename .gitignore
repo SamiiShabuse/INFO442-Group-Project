@@ -4,6 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 .ipython/
 .jupyter_runtime/
+.pytest_cache/
+pytest-cache-files-*/
+tests/.tmp/
+pytest_tmp/
 *.pyc
 .DS_Store
 .env

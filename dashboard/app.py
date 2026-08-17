@@ -27,7 +27,7 @@ PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
 INTEGRATED_PATH = DATA_ROOT / "integrated"
 
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
-from portfolio_optimizer import (  # noqa: E402
+from portfolio_risk.portfolio import (  # noqa: E402
     BENCHMARK,
     build_rf_predicted_covariance_matrix,
     evaluate_portfolio,

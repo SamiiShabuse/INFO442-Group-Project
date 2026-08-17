@@ -1,8 +1,14 @@
 # Source Code Folder
 
-This folder is for reusable Python code that supports the notebooks and dashboard.
+This folder contains reusable Python code that supports the notebooks, scripts,
+and dashboard.
 
-Right now, most project logic still lives in notebooks. As the project matures, repeated or important logic should move here so it can be imported and reused.
+The project now uses a package-style layout under `src/portfolio_risk/`. New
+shared logic should go into that package instead of being copied into notebooks
+or standalone scripts.
+
+The high-level project story is documented in `../README.md` and
+`../docs/project_workflow.md`. This README focuses on the package boundaries.
 
 ## What Belongs Here
 
@@ -24,13 +30,80 @@ Right now, most project logic still lives in notebooks. As the project matures, 
 
 ## Intended Relationship With Notebooks
 
-Notebooks in `notebooks/` should explain and run the workflow. Shared implementation details should eventually live in `src/`, then be imported into notebooks and the dashboard.
+Notebooks in `notebooks/` should explain and visualize the workflow. Shared
+implementation details should live in `src/portfolio_risk/`, then be imported
+by notebooks, command-line scripts, and the dashboard.
 
-## Current Modules
+In other words:
 
-- `portfolio_optimizer.py`: reusable portfolio math, risk/return metrics, Random Forest predictive covariance construction, and optimization.
-- `order_generation.py`: reusable logic for converting target weights into dry-run buy/sell/hold rebalance orders.
+```text
+notebooks/ = narrative analysis and visuals
+scripts/   = repeatable command-line entry points
+src/       = tested reusable implementation
+```
+
+## Current Package Layout
+
+```text
+portfolio_risk/
+    __init__.py
+    config.py
+    data_fetching.py
+    evaluation.py
+    features.py
+    modeling.py
+    orders.py
+    paths.py
+    portfolio.py
+    prediction.py
+    prediction_archive.py
+    rebalancing.py
+    training.py
+```
+
+- `portfolio_risk.config`: shared constants for trading days, benchmark ticker,
+  date/ticker columns, model target, prediction, and actual-volatility columns.
+- `portfolio_risk.data_fetching`: Yahoo chart and FRED macro data fetching
+  utilities used by the live feature refresh workflow.
+- `portfolio_risk.evaluation`: completed-window model evaluation,
+  trailing-volatility comparison, file-backed evaluation workflows, and shared
+  regression metric utilities.
+- `portfolio_risk.features`: latest feature snapshot refresh logic, macro
+  context merging, ticker loading, and rolling market feature engineering.
+- `portfolio_risk.modeling`: selected-feature loading, date-column detection,
+  model validation, model loading, feature matrix construction, and prediction
+  frame helpers.
+- `portfolio_risk.orders`: reusable logic for converting target weights into
+  dry-run buy/sell/hold rebalance orders.
+- `portfolio_risk.paths`: shared project paths for data, notebooks, docs,
+  scripts, model outputs, live predictions, and paper-order outputs.
+- `portfolio_risk.portfolio`: reusable portfolio math, risk/return metrics,
+  Random Forest predictive covariance construction, and optimization.
+- `portfolio_risk.prediction`: latest-feature prediction workflow for loading
+  model inputs, validating feature order, generating RF volatility forecasts,
+  and formatting the wide prediction CSV.
+- `portfolio_risk.prediction_archive`: reusable prediction archiving and
+  long-format prediction-log update helpers.
+- `portfolio_risk.rebalancing`: reusable RF-driven rebalance workflow for
+  loading live predictions, optimizing target weights, and creating dry-run
+  order outputs.
+- `portfolio_risk.training`: reusable Random Forest training workflow for
+  loading labeled feature rows, time-splitting train/test data, fitting the
+  holdout/final models, and exporting model metrics and metadata.
 
 The order-generation module does not submit real trades. It creates structured
 CSV outputs that can be reviewed, visualized, or used later by a separate paper
 trading integration.
+
+## Compatibility Wrappers
+
+The older top-level modules still exist for now:
+
+```text
+portfolio_optimizer.py
+order_generation.py
+```
+
+They re-export the new package modules so older notebooks or scripts do not
+break immediately. New code should import from `portfolio_risk.portfolio` and
+`portfolio_risk.orders` directly.

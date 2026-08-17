@@ -13,132 +13,47 @@ Example:
 """
 
 import argparse
+import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 
-PREDICTED_COLUMN = "predicted_future_volatility_20d"
-TRAILING_COLUMN = "trailing_volatility_20d"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from portfolio_risk.evaluation import (  # noqa: E402
+    largest_trailing_difference_table,
+    run_trailing_volatility_comparison,
+)
 
 
-def load_prediction_row(path: Path) -> tuple[pd.Timestamp, pd.DataFrame]:
-    predictions = pd.read_csv(path, index_col=0, parse_dates=True)
-    if predictions.empty:
-        raise SystemExit("prediction CSV did not contain any rows")
-
-    latest_prediction = predictions.tail(1)
-    target_date = pd.Timestamp(latest_prediction.index[0]).normalize()
-
-    long_predictions = (
-        latest_prediction.reset_index()
-        .melt(
-            id_vars=latest_prediction.index.name or "Date",
-            var_name="ticker",
-            value_name=PREDICTED_COLUMN,
-        )
-        [["ticker", PREDICTED_COLUMN]]
-    )
-    long_predictions["ticker"] = long_predictions["ticker"].astype(str)
-    long_predictions[PREDICTED_COLUMN] = pd.to_numeric(
-        long_predictions[PREDICTED_COLUMN],
-        errors="coerce",
-    )
-
-    return target_date, long_predictions
-
-
-def compare_to_trailing_vol(
+def main(
     features_path: str,
     predictions_path: str,
     feature_date: str,
     out_path: str,
     summary_out_path: str | None,
 ) -> None:
-    features_path = Path(features_path)
-    predictions_path = Path(predictions_path)
-    out_path = Path(out_path)
-    summary_path = Path(summary_out_path) if summary_out_path else out_path.with_suffix(".summary.csv")
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
-
-    feature_timestamp = pd.Timestamp(feature_date).normalize()
-    features = pd.read_csv(features_path, parse_dates=["Date"], low_memory=False)
-    features["Date"] = pd.to_datetime(features["Date"]).dt.normalize()
-
-    required_columns = ["Date", "ticker", "rolling_volatility_20d"]
-    missing_columns = [column for column in required_columns if column not in features.columns]
-    if missing_columns:
-        raise SystemExit(f"Feature snapshot is missing columns: {missing_columns}")
-
-    feature_rows = features[features["Date"] == feature_timestamp].copy()
-    if feature_rows.empty:
-        raise SystemExit(f"No feature rows found for {feature_timestamp.date()}")
-
-    feature_rows = feature_rows[
-        ["Date", "ticker", "rolling_volatility_20d", "rolling_volatility_5d", "daily_return"]
-    ].copy()
-    feature_rows = feature_rows.rename(columns={"rolling_volatility_20d": TRAILING_COLUMN})
-    feature_rows["ticker"] = feature_rows["ticker"].astype(str)
-    feature_rows[TRAILING_COLUMN] = pd.to_numeric(feature_rows[TRAILING_COLUMN], errors="coerce")
-
-    prediction_target_date, predictions = load_prediction_row(predictions_path)
-
-    comparison = feature_rows.merge(predictions, on="ticker", how="inner")
-    comparison = comparison.dropna(subset=[TRAILING_COLUMN, PREDICTED_COLUMN]).copy()
-
-    if comparison.empty:
-        raise SystemExit("No overlapping complete ticker rows between features and predictions")
-
-    comparison["prediction_target_date"] = prediction_target_date
-    comparison["prediction_minus_trailing"] = comparison[PREDICTED_COLUMN] - comparison[TRAILING_COLUMN]
-    comparison["absolute_difference"] = comparison["prediction_minus_trailing"].abs()
-    comparison["ratio_predicted_to_trailing"] = np.where(
-        comparison[TRAILING_COLUMN] > 0,
-        comparison[PREDICTED_COLUMN] / comparison[TRAILING_COLUMN],
-        np.nan,
+    result = run_trailing_volatility_comparison(
+        features_path=features_path,
+        predictions_path=predictions_path,
+        feature_date=feature_date,
+        out_path=out_path,
+        summary_out_path=summary_out_path,
     )
 
-    comparison = comparison.sort_values("absolute_difference", ascending=False)
-    comparison.to_csv(out_path, index=False)
-
-    correlation = comparison[[PREDICTED_COLUMN, TRAILING_COLUMN]].corr().iloc[0, 1]
-    summary = {
-        "feature_date": feature_timestamp.date().isoformat(),
-        "prediction_target_date": prediction_target_date.date().isoformat(),
-        "tickers": int(len(comparison)),
-        "mean_predicted_future_volatility_20d": float(comparison[PREDICTED_COLUMN].mean()),
-        "mean_trailing_volatility_20d": float(comparison[TRAILING_COLUMN].mean()),
-        "mean_prediction_minus_trailing": float(comparison["prediction_minus_trailing"].mean()),
-        "mean_absolute_difference": float(comparison["absolute_difference"].mean()),
-        "correlation_predicted_vs_trailing": float(correlation),
-    }
-    pd.DataFrame([summary]).to_csv(summary_path, index=False)
-
-    print("Wrote comparison to:", out_path)
-    print("Wrote summary to:", summary_path)
-    print(pd.DataFrame([summary]).T)
+    print("Wrote comparison to:", result.out_path)
+    print("Wrote summary to:", result.summary_out_path)
+    print(pd.DataFrame([result.summary]).T)
     print("\nLargest differences:")
-    print(
-        comparison[
-            [
-                "ticker",
-                PREDICTED_COLUMN,
-                TRAILING_COLUMN,
-                "prediction_minus_trailing",
-                "absolute_difference",
-                "ratio_predicted_to_trailing",
-            ]
-        ]
-        .head(10)
-        .to_string(index=False)
-    )
+    print(largest_trailing_difference_table(result.comparison).to_string(index=False))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compare RF prediction with trailing 20-day volatility.")
+    parser = argparse.ArgumentParser(
+        description="Compare RF prediction with trailing 20-day volatility."
+    )
     parser.add_argument(
         "--features",
         default="data/processed/features/latest_feature_snapshot.csv",
@@ -162,7 +77,7 @@ if __name__ == "__main__":
     parser.add_argument("--summary-out", default=None, help="Optional summary CSV path")
 
     args = parser.parse_args()
-    compare_to_trailing_vol(
+    main(
         features_path=args.features,
         predictions_path=args.predictions,
         feature_date=args.feature_date,

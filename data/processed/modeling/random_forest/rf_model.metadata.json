@@ -44,9 +44,9 @@
   "purged_train_rows": 420,
   "test_rows": 9681,
   "final_fit_rows": 40950,
-  "training_start_timestamp": "2026-08-27T08:43:15.246658",
-  "training_end_timestamp": "2026-08-27T08:43:28.321209",
-  "training_duration_seconds": 13.074513399999887,
+  "training_start_timestamp": "2026-08-27T16:09:46.921166",
+  "training_end_timestamp": "2026-08-27T16:09:59.689395",
+  "training_duration_seconds": 12.768205500000022,
   "holdout_metrics": {
     "MAE": 0.004118775897541936,
     "RMSE": 0.006101394857650229,

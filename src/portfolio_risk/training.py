@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
 from portfolio_risk.config import (
     DATE_COLUMN,
+    PREDICTED_VOLATILITY_COLUMN,
     TARGET_COLUMN,
     TARGET_END_DATE_COLUMN,
     TICKER_COLUMN,
@@ -52,6 +53,7 @@ class RandomForestTrainingResult:
     final_model: RandomForestRegressor
     holdout_model: RandomForestRegressor
     best_params: dict
+    holdout_predictions: pd.DataFrame
     metrics: pd.DataFrame
     holdout_metrics: dict
     baseline_metrics: dict | None
@@ -71,6 +73,8 @@ class RandomForestTrainingRunResult:
     model_out: Path
     metadata_out_path: Path
     metrics_out_path: Path
+    predictions_out_path: Path | None = None
+    comparison_metrics_out_path: Path | None = None
 
 
 def resolve_training_output_paths(
@@ -251,6 +255,49 @@ def build_metrics_frame(holdout_metrics: dict, baseline_metrics: dict | None) ->
     return pd.DataFrame(rows)
 
 
+def build_holdout_predictions_frame(
+    split: ModelingDataSplit,
+    predictions,
+) -> pd.DataFrame:
+    """Format holdout predictions for notebooks and dashboard data refreshes."""
+    prediction_frame = split.test_df[[DATE_COLUMN, TICKER_COLUMN, TARGET_COLUMN]].copy()
+    prediction_frame[PREDICTED_VOLATILITY_COLUMN] = predictions
+    return prediction_frame[
+        [DATE_COLUMN, TICKER_COLUMN, TARGET_COLUMN, PREDICTED_VOLATILITY_COLUMN]
+    ]
+
+
+def build_comparison_metrics_frame(training: RandomForestTrainingResult) -> pd.DataFrame:
+    """Format RF metrics with the legacy notebook metadata columns."""
+    split = training.split
+    metrics = training.metrics.copy()
+
+    metrics["model_run_timestamp"] = training.started.isoformat()
+    metrics["split_date"] = split.split_timestamp.date().isoformat()
+    metrics["train_start_date"] = split.train_df[DATE_COLUMN].min().date().isoformat()
+    metrics["train_end_date"] = split.train_df[DATE_COLUMN].max().date().isoformat()
+    metrics["test_start_date"] = split.test_df[DATE_COLUMN].min().date().isoformat()
+    metrics["test_end_date"] = split.test_df[DATE_COLUMN].max().date().isoformat()
+    metrics["train_rows"] = int(len(split.train_df))
+    metrics["test_rows"] = int(len(split.test_df))
+
+    metrics["training_start_timestamp"] = training.started.isoformat()
+    metrics["training_end_timestamp"] = training.ended.isoformat()
+    metrics["training_duration_seconds"] = training.duration_seconds
+
+    baseline_mask = metrics["model"] == BASELINE_MODEL_LABEL
+    metrics.loc[
+        baseline_mask,
+        [
+            "training_start_timestamp",
+            "training_end_timestamp",
+            "training_duration_seconds",
+        ],
+    ] = pd.NA
+
+    return metrics
+
+
 def train_random_forest_model(
     model_df: pd.DataFrame,
     selected_features: list[str],
@@ -306,6 +353,7 @@ def train_random_forest_model(
 
     test_predictions = holdout_model.predict(X_test)
     holdout_metrics = regression_metrics(y_test, test_predictions)
+    holdout_predictions = build_holdout_predictions_frame(split, test_predictions)
 
     baseline_metrics = None
     if "rolling_volatility_20d" in split.test_df.columns:
@@ -328,6 +376,7 @@ def train_random_forest_model(
         final_model=final_model,
         holdout_model=holdout_model,
         best_params=best_params,
+        holdout_predictions=holdout_predictions,
         metrics=build_metrics_frame(holdout_metrics, baseline_metrics),
         holdout_metrics=holdout_metrics,
         baseline_metrics=baseline_metrics,
@@ -403,6 +452,8 @@ def run_random_forest_training(
     model_out: str | Path,
     metadata_out: str | Path | None = None,
     metrics_out: str | Path | None = None,
+    predictions_out: str | Path | None = None,
+    comparison_metrics_out: str | Path | None = None,
     split_date: str = DEFAULT_SPLIT_DATE,
     n_jobs: int = 1,
     tune: bool = False,
@@ -447,10 +498,22 @@ def run_random_forest_training(
     training.metrics.to_csv(metrics_out_path, index=False)
     metadata_out_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
+    predictions_out_path = Path(predictions_out) if predictions_out else None
+    if predictions_out_path:
+        predictions_out_path.parent.mkdir(parents=True, exist_ok=True)
+        training.holdout_predictions.to_csv(predictions_out_path, index=False)
+
+    comparison_metrics_out_path = Path(comparison_metrics_out) if comparison_metrics_out else None
+    if comparison_metrics_out_path:
+        comparison_metrics_out_path.parent.mkdir(parents=True, exist_ok=True)
+        build_comparison_metrics_frame(training).to_csv(comparison_metrics_out_path, index=False)
+
     return RandomForestTrainingRunResult(
         training=training,
         metadata=metadata,
         model_out=model_out_path,
         metadata_out_path=metadata_out_path,
         metrics_out_path=metrics_out_path,
+        predictions_out_path=predictions_out_path,
+        comparison_metrics_out_path=comparison_metrics_out_path,
     )

@@ -77,11 +77,11 @@ Neural Network MLP use the shared selected feature list from
 GARCH is a SPY-only statistical volatility model, so it is reported separately
 from the all-ticker models.
 
-The tuned Random Forest is currently the strongest all-ticker model by MAE,
-RMSE, and R2. Its predicted volatility is therefore used by the portfolio
-optimization workflow. The MLP is included for model comparison and in the
-dashboard Prediction Explorer, but it does not replace Random Forest in the
-optimizer because its test performance is weaker.
+Random Forest is the exported live model because it has a repeatable training
+artifact workflow and leakage-safe holdout performance above the
+trailing-volatility baseline. Its refreshed holdout MAE is 0.00412 versus
+0.00469 for the trailing-volatility baseline. Gradient Boosting and the MLP
+remain comparison models in the dashboard Prediction Explorer.
 
 Notebook 09 is the final portfolio-impact experiment. It should be used for
 README, dashboard, report, and presentation claims because it compares the RF

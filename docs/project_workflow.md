@@ -306,10 +306,15 @@ The main project pipeline is implemented:
 - Dashboard presentation layer.
 - Unit tests for package logic.
 
-The remaining polish is public-launch work: deploy the Streamlit dashboard,
-set the GitHub About description/topics/homepage, choose a license with the
-team, and rerun the notebook comparison tables if the leakage-safe target-window
-split is applied to every model notebook.
+The public dashboard is deployed at:
+
+```text
+https://portfolio-volatility-optimizer.streamlit.app/
+```
+
+Remaining polish is limited to choosing a license with the team and rerunning
+the full model comparison if the leakage-safe target-window split is applied to
+every model notebook.
 
 ## 13. Responsible Use
 

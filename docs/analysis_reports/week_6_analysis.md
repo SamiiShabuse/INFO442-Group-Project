@@ -81,29 +81,38 @@ Features dropped by feature selection included redundant or raw-level columns su
 
 ## Model Results After Connecting Selected Features
 
-After connecting `selected_features.csv` into the modeling notebooks, we reran all models and reran the model comparison notebook.
+After connecting `selected_features.csv` into the modeling notebooks, we reran
+all models and reran the model comparison notebook. The Random Forest row below
+has since been refreshed with the leakage-safe target-window split used by the
+exported model workflow.
 
 | Model | MAE | RMSE | R2 | Training Duration |
 | --- | ---: | ---: | ---: | ---: |
-| Random Forest tuned | 0.003741 | 0.005802 | 0.3390 | 38.90 sec |
+| Random Forest | 0.004119 | 0.006101 | 0.2855 | 12.77 sec |
 | Gradient Boosting | 0.004113 | 0.005946 | 0.3055 | 1.69 sec |
-| Baseline: rolling volatility | 0.004647 | 0.007130 | 0.0015 | N/A |
+| Baseline: rolling volatility | 0.004693 | 0.007191 | 0.0075 | N/A |
 | Ridge Regression | 0.005362 | 0.007763 | -0.1837 | 0.08 sec |
 | Linear Regression | 0.005363 | 0.007764 | -0.1839 | 0.01 sec |
 
-The current best all-ticker model is Random Forest tuned. It has the lowest RMSE and highest R2 after the selected feature list was connected.
+The leakage-safe Random Forest remains the exported live model because it has a
+repeatable artifact workflow and beats the trailing-volatility baseline. In the
+archived all-model comparison, Gradient Boosting remains a strong comparison
+model with slightly lower RMSE.
 
 ## Training and Test Period
 
-The updated model comparison used the same time-based split as before.
+The refreshed Random Forest uses the same split date, but purges training rows
+whose 20-trading-day target window crosses into the test period.
 
 | Item | Value |
 | --- | --- |
 | Split date | 2024-01-01 |
-| Training period | 2018-01-31 to 2023-12-29 |
-| Test period | 2024-01-02 to 2025-12-01 |
-| Training rows | 31,269 |
-| Test rows | 10,101 |
+| Training period | 2018-01-31 to 2023-11-30 |
+| Training target-window end | 2023-12-29 |
+| Test period | 2024-01-02 to 2025-10-31 |
+| Training rows | 30,849 |
+| Purged training rows | 420 |
+| Test rows | 9,681 |
 
 ## Portfolio Results After Model Rerun
 
@@ -124,7 +133,9 @@ The RF Predictive Max Sharpe portfolio now has the highest annualized return and
 
 The main finding is that the expanded FRED data helps, but it should not be used blindly. Feature selection helped us avoid keeping every macro column just because it was available.
 
-The selected feature list improved the tree-based models most clearly. Random Forest became the strongest all-ticker volatility model after using the selected feature list, and Gradient Boosting also remained stronger than the baseline.
+The selected feature list improved the tree-based models most clearly. After the
+leakage-safe refresh, both Random Forest and Gradient Boosting remain stronger
+than the trailing-volatility baseline.
 
 Linear Regression and Ridge Regression still performed worse than the baseline. This suggests that the relationship between market features, macro features, and future volatility is probably not simple enough for a linear model to capture well.
 
@@ -132,8 +143,10 @@ The tradeoff is:
 
 - Full macro data gives the model more information, but it can add noise and redundancy.
 - Selected features reduce noise and make the model easier to explain.
-- Random Forest gets the most benefit from the selected feature set, but it also takes much longer to train.
-- Gradient Boosting is slightly less accurate than Random Forest, but trains much faster.
+- Random Forest has the repeatable live artifact workflow and a leakage-safe
+  holdout improvement over the trailing-volatility baseline.
+- Gradient Boosting remains a strong comparison model in the archived
+  all-model table.
 
 ## Final Decision
 
@@ -141,10 +154,14 @@ The selected feature list is now connected to the main tabular modeling notebook
 
 Final modeling direction:
 
-- Keep Random Forest tuned as the current best predictive model.
-- Keep Gradient Boosting as a strong backup model because it is faster and still performs well.
+- Keep Random Forest as the exported live predictive model.
+- Keep Gradient Boosting as a strong comparison model because it is fast and
+  still performs well in the archived model comparison.
 - Keep GARCH separate because it is SPY-only and not directly comparable to the all-ticker models.
 - Use the refreshed portfolio optimization results when discussing final portfolio strategy performance.
 - Use the updated dashboard to show model comparison, prediction explorer charts, and portfolio strategy results.
 
-This gives us a clearer final project story: FRED macro data was useful, feature selection made it more reliable, and Random Forest became the strongest volatility model after the selected feature list was connected and the notebooks were rerun.
+This gives us a clearer final project story: FRED macro data was useful,
+feature selection made it more reliable, and the exported Random Forest
+workflow provides a leakage-safe volatility model for the dashboard and live
+prediction scripts.

@@ -3,8 +3,9 @@
 This folder contains the Random Forest outputs used by both the notebook
 analysis and the live prediction workflow.
 
-Random Forest is the main live model because it is the strongest all-ticker
-volatility model in the project comparison. It predicts:
+Random Forest is the main live model because it has a repeatable artifact
+export workflow and leakage-safe holdout performance above the
+trailing-volatility baseline. It predicts:
 
 ```text
 future_volatility_20d
@@ -18,7 +19,9 @@ next 20 trading days.
 - `metrics.csv`: holdout metrics from the Random Forest modeling notebook.
 - `test_predictions.csv`: holdout predictions used for model comparison.
 
-These files support the model comparison notebook and dashboard.
+These files now come from the same leakage-safe training script as the exported
+model artifact, so notebook 09 and the dashboard use the corrected holdout
+predictions.
 
 ## Exported Live Model
 

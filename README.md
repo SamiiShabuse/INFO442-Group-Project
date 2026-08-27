@@ -17,17 +17,22 @@ compare portfolio strategies.
 This project is educational and analytical. It is not financial advice, and it
 does not submit real trades.
 
+Live dashboard: https://portfolio-volatility-optimizer.streamlit.app/
+
 ## Key Results
 
-- Random Forest improved pooled 20-day volatility forecast MAE from 0.00465
-  for a trailing-volatility baseline to 0.00374 in the predictive-vs-historical
-  experiment, about 19.5% lower error.
-- In the walk-forward portfolio robustness sweep, the RF predictive risk model
-  produced lower realized portfolio volatility than the matched historical
-  risk model at all six tested rebalance frequencies.
-- The Sharpe-ratio advantage changed sign across rebalance frequencies, so the
-  defensible conclusion is stronger risk forecasting and risk control, not
-  consistently higher risk-adjusted returns.
+- After correcting target-window leakage, Random Forest improved pooled
+  20-day volatility forecast MAE from 0.00469 for a trailing-volatility
+  baseline to 0.00412, about 12.2% lower error. Its pooled R2 was 0.286,
+  compared with 0.0075 for the baseline.
+- Random Forest had lower per-ticker RMSE than the trailing-volatility
+  baseline for 17 of 21 tickers and better risk-model calibration MAE
+  in the portfolio experiment.
+- In the walk-forward portfolio robustness sweep, the RF predictive risk
+  model produced lower realized volatility at 3 of 6 tested rebalance
+  frequencies. It did not consistently improve Sharpe ratio, so the
+  defensible conclusion is stronger volatility forecasting, not guaranteed
+  portfolio outperformance.
 - The exported Random Forest artifact now uses a target-window-purged holdout
   split so training rows whose 20-day target windows cross into the 2024+
   test period are excluded from holdout training.
@@ -54,8 +59,9 @@ The project handles that question through a full pipeline:
 3. Engineer rolling return, volatility, volume, drawdown, benchmark, and macro
    features.
 4. Train several volatility prediction models.
-5. Select Random Forest as the main live model based on all-ticker holdout
-   performance.
+5. Use Random Forest as the main live model because it has a repeatable
+   artifact workflow and leakage-safe holdout performance above the
+   trailing-volatility baseline.
 6. Use predicted volatility inside a portfolio optimizer.
 7. Compare portfolio strategies using return, volatility, Sharpe ratio,
    drawdown, cumulative return, and allocation visuals.
@@ -83,7 +89,7 @@ The project handles that question through a full pipeline:
   portfolio optimization, predictive-vs-historical evaluation, live RF
   evaluation, and paper-trading analysis.
 - A Streamlit dashboard with model, prediction, portfolio, and live optimizer
-  pages.
+  pages, deployed at https://portfolio-volatility-optimizer.streamlit.app/.
 
 ## Repository Layout
 
@@ -149,6 +155,8 @@ Outputs:
 data/processed/modeling/random_forest/rf_model.pkl
 data/processed/modeling/random_forest/rf_model.metrics.csv
 data/processed/modeling/random_forest/rf_model.metadata.json
+data/processed/modeling/random_forest/test_predictions.csv
+data/processed/modeling/random_forest/metrics.csv
 ```
 
 The training workflow derives each row's `target_end_date` and purges rows
@@ -210,6 +218,14 @@ The generated orders are reviewable CSV outputs only. They do not connect to a
 real brokerage account.
 
 ### 7. Run The Dashboard
+
+Live app:
+
+```text
+https://portfolio-volatility-optimizer.streamlit.app/
+```
+
+Run locally:
 
 ```powershell
 streamlit run dashboard/app.py
@@ -311,14 +327,15 @@ Run checks:
 This was built as a group data science project by Danny Eapen, Jeffrey Cheung,
 Joel Thomas, and Samii Shabuse.
 
-Local git history shows Samii Shabuse owned much of the package refactor,
-testing setup, script workflow, dashboard polish, and documentation cleanup.
-Jeffrey Cheung contributed the RF-vs-baseline notebook work, and Joel Thomas
-contributed project story documentation. Danny Eapen, Jeffrey Cheung, Joel
-Thomas, and Samii Shabuse all appear as repository contributors.
-
-Before publishing publicly, add each contributor's preferred GitHub profile
-link and confirm exact ownership wording with the team.
+- Danny Eapen -- data preprocessing, integration support, dashboard support,
+  and project analysis/reporting contributions.
+- Jeffrey Cheung -- Random Forest modeling, RF-vs-baseline analysis,
+  predictive-volatility experiments, and notebook workflow contributions.
+- Joel Thomas -- FRED macro data expansion, macro feature framing, project
+  story documentation, and analysis writeups.
+- Samii Shabuse -- package refactoring, automated testing, CLI workflows,
+  dashboard development, model deployment workflow, and repository/documentation
+  polish.
 
 ## Limitations
 

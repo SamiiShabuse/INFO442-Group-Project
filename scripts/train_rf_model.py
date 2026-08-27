@@ -36,6 +36,8 @@ def main(
     model_out: str,
     metadata_out: str | None,
     metrics_out: str | None,
+    predictions_out: str | None,
+    comparison_metrics_out: str | None,
     split_date: str,
     n_jobs: int,
     tune: bool,
@@ -48,6 +50,8 @@ def main(
         model_out=model_out,
         metadata_out=metadata_out,
         metrics_out=metrics_out,
+        predictions_out=predictions_out,
+        comparison_metrics_out=comparison_metrics_out,
         split_date=split_date,
         n_jobs=n_jobs,
         tune=tune,
@@ -59,6 +63,10 @@ def main(
     print("Wrote model to:", result.model_out)
     print("Wrote metrics to:", result.metrics_out_path)
     print("Wrote metadata to:", result.metadata_out_path)
+    if result.predictions_out_path:
+        print("Wrote holdout predictions to:", result.predictions_out_path)
+    if result.comparison_metrics_out_path:
+        print("Wrote notebook metrics to:", result.comparison_metrics_out_path)
     print(result.training.metrics)
 
 
@@ -81,6 +89,16 @@ if __name__ == "__main__":
     )
     parser.add_argument("--metadata-out", default=None, help="Optional metadata JSON path")
     parser.add_argument("--metrics-out", default=None, help="Optional metrics CSV path")
+    parser.add_argument(
+        "--predictions-out",
+        default="data/processed/modeling/random_forest/test_predictions.csv",
+        help="Optional notebook-facing holdout predictions CSV path",
+    )
+    parser.add_argument(
+        "--comparison-metrics-out",
+        default="data/processed/modeling/random_forest/metrics.csv",
+        help="Optional notebook-facing model-comparison metrics CSV path",
+    )
     parser.add_argument(
         "--split-date",
         default=DEFAULT_SPLIT_DATE,
@@ -117,6 +135,8 @@ if __name__ == "__main__":
         model_out=args.model_out,
         metadata_out=args.metadata_out,
         metrics_out=args.metrics_out,
+        predictions_out=args.predictions_out,
+        comparison_metrics_out=args.comparison_metrics_out,
         split_date=args.split_date,
         n_jobs=args.n_jobs,
         tune=args.tune,

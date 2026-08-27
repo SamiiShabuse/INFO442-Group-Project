@@ -1,6 +1,6 @@
 # Predictive Portfolio Optimization and Risk Analytics
 
-[![CI](https://github.com/SamiiShabuse/INFO442-Group-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/SamiiShabuse/INFO442-Group-Project/actions/workflows/ci.yml)
+[![CI](https://github.com/SamiiShabuse/Predictive-Portfolio-Risk/actions/workflows/ci.yml/badge.svg)](https://github.com/SamiiShabuse/Predictive-Portfolio-Risk/actions/workflows/ci.yml)
 
 This project is an end-to-end data science system for studying portfolio risk.
 It combines historical market data, macroeconomic context, volatility

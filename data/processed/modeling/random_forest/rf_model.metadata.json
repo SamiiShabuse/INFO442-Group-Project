@@ -32,26 +32,29 @@
   "n_jobs": 1,
   "tuned_with_grid_search": false,
   "split_date": "2024-01-01",
+  "target_end_date_column": "target_end_date",
   "train_start_date": "2018-01-31",
-  "train_end_date": "2023-12-29",
+  "train_end_date": "2023-11-30",
+  "train_target_end_date": "2023-12-29",
   "test_start_date": "2024-01-02",
-  "test_end_date": "2025-12-01",
+  "test_end_date": "2025-10-31",
   "final_fit_start_date": "2018-01-31",
-  "final_fit_end_date": "2025-12-01",
-  "train_rows": 31269,
-  "test_rows": 10101,
-  "final_fit_rows": 41370,
-  "training_start_timestamp": "2026-08-05T23:01:58.021485",
-  "training_end_timestamp": "2026-08-05T23:02:10.501585",
-  "training_duration_seconds": 12.480079400000022,
+  "final_fit_end_date": "2025-10-31",
+  "train_rows": 30849,
+  "purged_train_rows": 420,
+  "test_rows": 9681,
+  "final_fit_rows": 40950,
+  "training_start_timestamp": "2026-08-27T08:43:15.246658",
+  "training_end_timestamp": "2026-08-27T08:43:28.321209",
+  "training_duration_seconds": 13.074513399999887,
   "holdout_metrics": {
-    "MAE": 0.00404091404517701,
-    "RMSE": 0.006001770013483712,
-    "R2": 0.2925419067453582
+    "MAE": 0.004118775897541936,
+    "RMSE": 0.006101394857650229,
+    "R2": 0.28550595233973153
   },
   "baseline_metrics": {
-    "MAE": 0.0046471957325684545,
-    "RMSE": 0.007130185107893033,
-    "R2": 0.0015102059479314978
+    "MAE": 0.004693263617369302,
+    "RMSE": 0.007191026511110296,
+    "R2": 0.007519159846109957
   }
 }

@@ -1,17 +1,17 @@
 """
 Portfolio Optimization & Risk Analytics Dashboard
-INFO 442 Group Project
 
 Run with: streamlit run dashboard/app.py
 """
 
+from math import ceil
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
 from scipy.optimize import minimize
 
 from portfolio_risk.portfolio import (
@@ -37,6 +37,7 @@ MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
 MODELING_PATH = DATA_ROOT / "modeling"
 PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
 INTEGRATED_PATH = DATA_ROOT / "integrated"
+PREDICTIVE_VS_HISTORICAL_PATH = DATA_ROOT / "predictive_vs_historical"
 
 st.set_page_config(
     page_title="Portfolio Optimization Dashboard",
@@ -74,11 +75,21 @@ def get_prediction_column(predictions):
 
 
 @st.cache_data
-def load_portfolio_data():
-    try:
-        return pd.read_csv(PORTFOLIO_PATH / "portfolio_performance_metrics.csv")
-    except FileNotFoundError:
-        return None
+def load_predictive_vs_historical_data():
+    accuracy = pd.read_csv(PREDICTIVE_VS_HISTORICAL_PATH / "forecast_accuracy_vs_baseline.csv")
+    ticker_accuracy = pd.read_csv(
+        PREDICTIVE_VS_HISTORICAL_PATH / "forecast_accuracy_by_ticker.csv"
+    )
+    performance = pd.read_csv(
+        PREDICTIVE_VS_HISTORICAL_PATH / "rebalanced_strategy_performance.csv"
+    )
+    cumulative = pd.read_csv(
+        PREDICTIVE_VS_HISTORICAL_PATH / "rebalanced_cumulative_returns.csv",
+        parse_dates=["Date"],
+    )
+    sweep = pd.read_csv(PREDICTIVE_VS_HISTORICAL_PATH / "rebalance_frequency_sweep.csv")
+    calibration = pd.read_csv(PREDICTIVE_VS_HISTORICAL_PATH / "risk_model_calibration.csv")
+    return accuracy, ticker_accuracy, performance, cumulative, sweep, calibration
 
 
 @st.cache_data
@@ -132,7 +143,13 @@ def compute_efficient_frontier(mean_returns, covariance_matrix, max_weight, n_po
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["Overview", "Model Comparison", "Prediction Explorer", "Portfolio Strategies", "Live Optimizer"],
+    [
+        "Overview",
+        "Model Comparison",
+        "Prediction Explorer",
+        "Predictive vs Historical",
+        "Live Optimizer",
+    ],
 )
 
 MODEL_FOLDERS = {
@@ -158,22 +175,32 @@ if page == "Overview":
         **Use the sidebar to navigate:**
         - **Model Comparison** - how our 4 volatility prediction models (+ GARCH baseline) stack up
         - **Prediction Explorer** - see predicted vs. actual volatility for any model/ticker
-        - **Portfolio Strategies** - compare portfolio construction approaches on the 2024+ test period
+        - **Predictive vs Historical** - the definitive walk-forward portfolio experiment
         - **Live Optimizer** - build and backtest your own portfolio using random forest predicted volatility
         """
     )
 
     try:
         all_ticker, garch = load_model_comparison()
+        accuracy, _, _, _, sweep, _ = load_predictive_vs_historical_data()
         col1, col2, col3 = st.columns(3)
         best_model_row = all_ticker.sort_values("RMSE").iloc[0]
+        rf_mae = accuracy.loc[accuracy["forecast"] == "Random Forest", "MAE"].iloc[0]
+        baseline_mae = accuracy.loc[
+            accuracy["forecast"] == "Historical baseline (trailing 20d vol)", "MAE"
+        ].iloc[0]
+        mae_improvement = (baseline_mae - rf_mae) / baseline_mae
         col1.metric("Best Model (by RMSE)", best_model_row["model"])
-        col2.metric("Best RMSE", f"{best_model_row['RMSE']:.5f}")
-        col3.metric("Best R2", f"{best_model_row['R2']:.3f}")
+        col2.metric("Forecast MAE Improvement", f"{mae_improvement:.1%}")
+        col3.metric(
+            "Lower Volatility Frequencies",
+            f"{int((sweep['volatility_advantage'] > 0).sum())}/{len(sweep)}",
+        )
     except FileNotFoundError:
         st.warning(
             "Model comparison files were not found. Expected "
-            "`data/processed/model_comparison/` under the project root."
+            "`data/processed/model_comparison/` and "
+            "`data/processed/predictive_vs_historical/` under the project root."
         )
 
 # ============================================================
@@ -275,39 +302,145 @@ elif page == "Prediction Explorer":
     col2.metric("Rows shown", len(ticker_df))
 
 # ============================================================
-# PAGE: PORTFOLIO STRATEGIES
+# PAGE: PREDICTIVE VS HISTORICAL
 # ============================================================
 
-elif page == "Portfolio Strategies":
-    st.title("Portfolio Strategies")
+elif page == "Predictive vs Historical":
+    st.title("Predictive vs Historical")
 
-    portfolio_df = load_portfolio_data()
-
-    if portfolio_df is None:
-        st.warning(
-            "Portfolio performance metrics were not found. Expected "
-            "`data/processed/portfolio_optimization/portfolio_performance_metrics.csv`."
+    try:
+        (
+            accuracy,
+            ticker_accuracy,
+            performance,
+            cumulative,
+            sweep,
+            calibration,
+        ) = load_predictive_vs_historical_data()
+    except FileNotFoundError:
+        st.error(
+            "Predictive-vs-historical outputs were not found. Expected "
+            "`data/processed/predictive_vs_historical/` under the project root."
         )
-    else:
-        st.dataframe(portfolio_df, use_container_width=True)
+        st.stop()
 
-        fig = px.scatter(
-            portfolio_df,
-            x="annualized_volatility",
-            y="annualized_return",
-            size="sharpe_ratio",
-            color="strategy",
-            hover_data=["max_drawdown"],
-            title="Risk-Return Tradeoff by Strategy",
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    rf_accuracy = accuracy.loc[accuracy["forecast"] == "Random Forest"].iloc[0]
+    baseline_accuracy = accuracy.loc[
+        accuracy["forecast"] == "Historical baseline (trailing 20d vol)"
+    ].iloc[0]
+    mae_improvement = (
+        (baseline_accuracy["MAE"] - rf_accuracy["MAE"]) / baseline_accuracy["MAE"]
+    )
+    volatility_wins = int((sweep["volatility_advantage"] > 0).sum())
+    sharpe_wins = int((sweep["sharpe_advantage"] > 0).sum())
 
-        fig2 = px.bar(
-            portfolio_df.sort_values("sharpe_ratio", ascending=False),
-            x="strategy", y="sharpe_ratio", color="strategy",
-            title="Sharpe Ratio by Strategy",
+    st.markdown(
+        "Machine-learned volatility forecasts improved forecast accuracy and "
+        "consistently lowered realized portfolio volatility, while Sharpe-ratio "
+        "improvement was not robust across rebalance frequencies."
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("RF MAE", f"{rf_accuracy['MAE']:.5f}")
+    col2.metric("Trailing Baseline MAE", f"{baseline_accuracy['MAE']:.5f}")
+    col3.metric("MAE Improvement", f"{mae_improvement:.1%}")
+    col4.metric("Lower Volatility", f"{volatility_wins}/{len(sweep)} frequencies")
+
+    metric_choice = st.radio("Forecast metric", ["MAE", "RMSE", "R2"], horizontal=True)
+    fig = px.bar(
+        accuracy,
+        x="forecast",
+        y=metric_choice,
+        color="forecast",
+        title=f"Random Forest vs Trailing Historical Volatility ({metric_choice})",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        ticker_fig = px.scatter(
+            ticker_accuracy,
+            x="rmse_baseline",
+            y="rmse_rf",
+            color="rf_wins",
+            hover_name="ticker",
+            title="Per-Ticker Forecast Accuracy",
         )
-        st.plotly_chart(fig2, use_container_width=True)
+        max_rmse = max(
+            ticker_accuracy["rmse_baseline"].max(),
+            ticker_accuracy["rmse_rf"].max(),
+        )
+        ticker_fig.add_trace(
+            go.Scatter(
+                x=[0, max_rmse],
+                y=[0, max_rmse],
+                mode="lines",
+                name="Equal RMSE",
+                line=dict(color="gray", dash="dash"),
+            )
+        )
+        ticker_fig.update_layout(xaxis_title="Baseline RMSE", yaxis_title="RF RMSE")
+        st.plotly_chart(ticker_fig, use_container_width=True)
+
+    with col2:
+        calibration_long = calibration.melt(
+            id_vars="risk_model",
+            value_vars=["mean_predicted", "mean_realized"],
+            var_name="volatility_type",
+            value_name="volatility",
+        )
+        calibration_fig = px.bar(
+            calibration_long,
+            x="risk_model",
+            y="volatility",
+            color="volatility_type",
+            barmode="group",
+            title="Risk Model Calibration",
+        )
+        st.plotly_chart(calibration_fig, use_container_width=True)
+
+    st.subheader("Walk-Forward Portfolio Backtest")
+    st.dataframe(
+        performance.style.format(
+            {
+                "annualized_return": "{:.2%}",
+                "annualized_volatility": "{:.2%}",
+                "sharpe_ratio": "{:.2f}",
+                "max_drawdown": "{:.2%}",
+                "cumulative_return": "{:.2%}",
+            }
+        ),
+        use_container_width=True,
+    )
+
+    cumulative_plot = cumulative.set_index("Date")
+    cumulative_fig = px.line(cumulative_plot, title="Walk-Forward Growth of $1")
+    cumulative_fig.update_layout(yaxis_tickformat=".0%", legend_title_text="")
+    st.plotly_chart(cumulative_fig, use_container_width=True)
+
+    sweep_long = sweep.melt(
+        id_vars="rebalance_days",
+        value_vars=["rf_volatility", "matched_volatility"],
+        var_name="risk_model",
+        value_name="annualized_volatility",
+    )
+    sweep_fig = px.line(
+        sweep_long,
+        x="rebalance_days",
+        y="annualized_volatility",
+        color="risk_model",
+        markers=True,
+        title="Realized Volatility by Rebalance Frequency",
+    )
+    sweep_fig.update_layout(yaxis_tickformat=".0%")
+    st.plotly_chart(sweep_fig, use_container_width=True)
+
+    st.caption(
+        f"RF volatility was lower at {volatility_wins} of {len(sweep)} tested "
+        f"frequencies. RF Sharpe was higher at {sharpe_wins} of {len(sweep)}, "
+        "so the defensible conclusion is stronger risk control rather than "
+        "consistently higher risk-adjusted returns."
+    )
 
 # ============================================================
 # PAGE: LIVE OPTIMIZER
@@ -371,6 +504,13 @@ elif page == "Live Optimizer":
         if len(selected_assets) < 2:
             st.warning("Select at least 2 assets to optimize a portfolio.")
             st.stop()
+        if len(selected_assets) * max_weight < 1:
+            st.warning(
+                f"The {max_weight:.0%} maximum weight cap is infeasible for "
+                f"{len(selected_assets)} selected assets. Select at least "
+                f"{ceil(1 / max_weight)} assets or choose a higher cap."
+            )
+            st.stop()
 
         train_asset_returns = train_returns[selected_assets]
         test_asset_returns = test_returns[selected_assets]
@@ -400,6 +540,9 @@ elif page == "Live Optimizer":
 
         if not rf_result.success:
             st.error(f"Optimization did not converge: {rf_result.message}")
+            st.stop()
+        if not historical_result.success:
+            st.error(f"Historical optimization did not converge: {historical_result.message}")
             st.stop()
 
         rf_weights = rf_result.x

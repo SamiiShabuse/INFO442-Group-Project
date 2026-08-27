@@ -3,14 +3,16 @@ from io import StringIO
 import pandas as pd
 import pytest
 
-from portfolio_risk.config import TARGET_COLUMN
+from portfolio_risk.config import TARGET_COLUMN, TARGET_END_DATE_COLUMN
 from portfolio_risk.training import (
     BASELINE_MODEL_LABEL,
     DEFAULT_MAX_DEPTH,
     RF_MODEL_LABEL,
+    add_target_end_dates,
     build_metrics_frame,
     build_training_metadata,
     load_modeling_data,
+    leakage_safe_time_series_cv,
     resolve_training_output_paths,
     split_modeling_data,
     train_random_forest_model,
@@ -31,12 +33,27 @@ def make_modeling_frame() -> pd.DataFrame:
     )
 
 
+def make_modeling_frame_with_target_end_dates() -> pd.DataFrame:
+    df = make_modeling_frame()
+    df[TARGET_END_DATE_COLUMN] = [
+        "2023-12-21",
+        "2023-12-21",
+        "2024-01-02",
+        "2024-01-02",
+        "2024-01-02",
+        "2024-01-02",
+        "2024-01-03",
+        "2024-01-03",
+    ]
+    return df
+
+
 def test_load_modeling_data_coerces_numeric_sorts_and_drops_missing_rows():
     features_csv = StringIO(
-        "Date,ticker,signal_a,signal_b,future_volatility_20d\n"
-        "2026-01-02,MSFT,2,4,0.20\n"
-        "2026-01-01,AAPL,1,3,0.10\n"
-        "2026-01-03,GLD,bad,5,0.30\n"
+        "Date,ticker,signal_a,signal_b,future_volatility_20d,target_end_date\n"
+        "2026-01-02,MSFT,2,4,0.20,2026-02-02\n"
+        "2026-01-01,AAPL,1,3,0.10,2026-01-30\n"
+        "2026-01-03,GLD,bad,5,0.30,2026-02-03\n"
     )
 
     model_df = load_modeling_data(features_csv, ["signal_a", "signal_b"])
@@ -44,6 +61,24 @@ def test_load_modeling_data_coerces_numeric_sorts_and_drops_missing_rows():
     assert list(model_df["ticker"]) == ["AAPL", "MSFT"]
     assert model_df["signal_a"].tolist() == [1.0, 2.0]
     assert model_df[TARGET_COLUMN].tolist() == [0.10, 0.20]
+    assert pd.api.types.is_datetime64_any_dtype(model_df[TARGET_END_DATE_COLUMN])
+
+
+def test_add_target_end_dates_uses_each_tickers_trading_calendar():
+    dates = pd.date_range("2026-01-01", periods=4, freq="B")
+    df = pd.DataFrame(
+        {
+            "Date": list(dates) * 2,
+            "ticker": ["AAPL"] * 4 + ["MSFT"] * 4,
+        }
+    )
+
+    with_target_end = add_target_end_dates(df, target_window_days=2)
+    aapl_rows = with_target_end[with_target_end["ticker"] == "AAPL"]
+
+    assert aapl_rows[TARGET_END_DATE_COLUMN].iloc[0] == dates[2]
+    assert aapl_rows[TARGET_END_DATE_COLUMN].iloc[1] == dates[3]
+    assert aapl_rows[TARGET_END_DATE_COLUMN].iloc[2:].isna().all()
 
 
 def test_load_modeling_data_rejects_missing_required_columns():
@@ -65,6 +100,35 @@ def test_split_modeling_data_uses_chronological_holdout():
 
     with pytest.raises(SystemExit, match="produced train_rows"):
         split_modeling_data(model_df, "2023-12-01")
+
+
+def test_split_modeling_data_purges_train_rows_whose_targets_cross_split():
+    model_df = make_modeling_frame_with_target_end_dates()
+
+    split = split_modeling_data(model_df, "2023-12-26")
+
+    assert len(split.train_df) == 2
+    assert split.purged_train_rows == 2
+    assert split.train_df[TARGET_END_DATE_COLUMN].max() < pd.Timestamp("2023-12-26")
+    assert split.test_df["Date"].min() >= pd.Timestamp("2023-12-26")
+
+
+def test_leakage_safe_time_series_cv_purges_fold_boundaries():
+    model_df = pd.DataFrame(
+        {
+            "Date": pd.date_range("2023-01-02", periods=12, freq="B"),
+            TARGET_END_DATE_COLUMN: pd.date_range("2023-01-06", periods=12, freq="B"),
+        }
+    )
+
+    folds = leakage_safe_time_series_cv(model_df, n_splits=3)
+
+    assert len(folds) >= 1
+    for train_indices, validation_indices in folds:
+        validation_start = model_df.iloc[validation_indices]["Date"].min()
+        assert (
+            model_df.iloc[train_indices][TARGET_END_DATE_COLUMN] < validation_start
+        ).all()
 
 
 def test_resolve_training_output_paths_defaults_and_accepts_overrides():

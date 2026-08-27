@@ -197,7 +197,40 @@ data/processed/portfolio_optimization/portfolio_daily_returns.csv
 data/processed/portfolio_optimization/portfolio_cumulative_returns.csv
 ```
 
-## 8. Rebalance Orders
+Notebook 06 is useful for understanding how the optimizer was built. The final
+portfolio-impact claim comes from the predictive-vs-historical experiment
+below because it uses a walk-forward rebalance design and a matched historical
+volatility baseline.
+
+## 8. Predictive Vs Historical Experiment
+
+Notebook 09 directly tests whether the Random Forest volatility forecast adds
+value over historical volatility.
+
+It produces:
+
+- Forecast accuracy for RF versus trailing 20-day volatility.
+- Per-ticker forecast accuracy.
+- A walk-forward portfolio backtest.
+- A rebalance-frequency robustness sweep.
+- Risk-model calibration tables.
+
+Key outputs:
+
+```text
+data/processed/predictive_vs_historical/forecast_accuracy_vs_baseline.csv
+data/processed/predictive_vs_historical/rebalanced_strategy_performance.csv
+data/processed/predictive_vs_historical/rebalanced_cumulative_returns.csv
+data/processed/predictive_vs_historical/rebalance_frequency_sweep.csv
+data/processed/predictive_vs_historical/risk_model_calibration.csv
+```
+
+This is the source of truth for public claims: RF improved forecast accuracy
+and consistently reduced realized portfolio volatility against the matched
+historical risk model, while Sharpe-ratio improvement was not consistent across
+rebalance frequencies.
+
+## 9. Rebalance Orders
 
 Portfolio optimization and order generation are related but different.
 
@@ -228,7 +261,7 @@ data/processed/portfolio_optimization/paper_orders/rebalance_orders_YYYY-MM-DD.c
 
 These are dry-run outputs only. They do not submit orders.
 
-## 9. Dashboard
+## 10. Dashboard
 
 The Streamlit dashboard is the presentation layer. It reads processed outputs
 instead of rebuilding the whole pipeline on every page load.
@@ -244,10 +277,10 @@ Dashboard pages:
 - Overview
 - Model Comparison
 - Prediction Explorer
-- Portfolio Strategies
+- Predictive vs Historical
 - Live Optimizer
 
-## 10. Why The Refactor Matters
+## 11. Why The Refactor Matters
 
 The project now separates three responsibilities:
 
@@ -258,7 +291,7 @@ The project now separates three responsibilities:
 This makes the repository easier to understand, test, rerun, and present to
 employers or reviewers.
 
-## 11. Current Status
+## 12. Current Status
 
 The main project pipeline is implemented:
 
@@ -268,15 +301,17 @@ The main project pipeline is implemented:
 - Live prediction archival.
 - Completed-window and trailing-volatility evaluation.
 - Portfolio optimization.
+- Predictive-vs-historical portfolio-impact analysis.
 - Dry-run rebalance order generation.
 - Dashboard presentation layer.
 - Unit tests for package logic.
 
-The remaining polish is final presentation/report work: choose the strongest
-visuals, explain the main results, document limitations, and present the final
-story clearly.
+The remaining polish is public-launch work: deploy the Streamlit dashboard,
+set the GitHub About description/topics/homepage, choose a license with the
+team, and rerun the notebook comparison tables if the leakage-safe target-window
+split is applied to every model notebook.
 
-## 12. Responsible Use
+## 13. Responsible Use
 
 The project predicts volatility, not guaranteed future returns. Market
 relationships can change, and optimization inputs are estimates. The dashboard

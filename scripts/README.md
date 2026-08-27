@@ -38,9 +38,6 @@ create_sample_current_positions.py
 
 generate_rebalance_orders.py
     turns optimized portfolio weights into dry-run rebalance orders
-
-paper_trade.py
-    older prototype for hypothetical/paper-trading orders
 ```
 
 ## Important Idea
@@ -76,6 +73,10 @@ or generated CSVs in `reports/`.
 
 Trains and exports the Random Forest model. The script is a command-line
 wrapper around the reusable `portfolio_risk.training` workflow.
+
+The training workflow derives each row's `target_end_date` and removes
+training samples whose future 20-trading-day target window crosses into the
+holdout period.
 
 Inputs:
 
@@ -264,25 +265,6 @@ python scripts\generate_rebalance_orders.py `
 The generated orders are dry-run outputs. They are useful for portfolio
 simulation and project demonstration, but they do not submit trades to a broker.
 
-### `paper_trade.py`
-
-Turns prediction weights into hypothetical or Alpaca paper-trading orders.
-
-This is separate from model evaluation. Use it only after the prediction
-pipeline is working and you want to test portfolio/order behavior.
-
-This script is an older prototype that weights directly from predictions. For
-the cleaner optimizer-based workflow, use `generate_rebalance_orders.py`.
-
-Example dry run:
-
-```powershell
-python scripts\paper_trade.py `
-  --predictions data\processed\modeling\random_forest\live_predictions\latest_preds.csv `
-  --dry-run `
-  --dry-price 100
-```
-
 ## Normal Daily Workflow
 
 Use this when you want to make a new live prediction run:
@@ -361,7 +343,8 @@ What portfolio weights and dry-run rebalance orders come from the latest RF pred
 
 Do I need a fake holdings file for rebalance testing?
     create_sample_current_positions.py
-
-What orders would these predictions create?
-    paper_trade.py
 ```
+
+The older direct prediction-to-order prototype was archived at
+`docs/archive/prototypes/paper_trade.py`. The active workflow is
+`generate_rebalance_orders.py`.

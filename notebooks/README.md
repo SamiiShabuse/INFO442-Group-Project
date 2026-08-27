@@ -22,6 +22,7 @@ notebooks/
   06_portfolio_optimization/
   07_live_model_evaluation/
   08_paper_trading/
+  09_predictive_vs_historical/
 ```
 
 ## Run Order
@@ -46,7 +47,7 @@ notebooks/
    - Keeps the SPY-only GARCH results separate from the all-ticker models.
    - Outputs files to `data/processed/model_comparison/`.
 7. `06_portfolio_optimization/01_portfolio_optimization.ipynb`
-   - Uses Random Forest predicted volatility with historical correlations to build predictive portfolio strategies.
+   - Uses Random Forest predicted volatility with historical correlations to build the first predictive portfolio strategies.
    - Outputs performance metrics, strategy weights, daily returns, and cumulative returns to `data/processed/portfolio_optimization/`.
 8. `07_live_model_evaluation/01_live_rf_real_data_evaluation.ipynb`
    - Evaluates archived Random Forest live predictions against real market data.
@@ -54,6 +55,10 @@ notebooks/
 9. `08_paper_trading/01_rebalance_order_analysis.ipynb`
    - Analyzes dry-run rebalance orders created from optimized target weights.
    - Visualizes target weights, buy/sell/hold actions, order dollars, and portfolio concentration.
+10. `09_predictive_vs_historical/01_rf_vs_baseline_portfolio_impact.ipynb`
+   - Directly compares RF predicted volatility against a trailing-volatility baseline.
+   - Runs the walk-forward portfolio-impact analysis, rebalance-frequency robustness sweep, and calibration check.
+   - Outputs the definitive project result tables to `data/processed/predictive_vs_historical/`.
 
 ## Modeling Notebooks
 
@@ -78,6 +83,11 @@ optimization workflow. The MLP is included for model comparison and in the
 dashboard Prediction Explorer, but it does not replace Random Forest in the
 optimizer because its test performance is weaker.
 
+Notebook 09 is the final portfolio-impact experiment. It should be used for
+README, dashboard, report, and presentation claims because it compares the RF
+risk model against a matched historical-volatility baseline under a
+walk-forward rebalance design.
+
 Each modeling notebook should save:
 
 - `test_predictions.csv`
@@ -91,6 +101,7 @@ Each modeling notebook should save:
 - Model predictions and metrics: `data/processed/modeling/`
 - Model comparison tables: `data/processed/model_comparison/`
 - Portfolio optimization outputs: `data/processed/portfolio_optimization/`
+- Predictive-vs-historical outputs: `data/processed/predictive_vs_historical/`
 - Random Forest live prediction/evaluation outputs: `data/processed/modeling/random_forest/`
 
 ## Pathing
@@ -98,7 +109,9 @@ Each modeling notebook should save:
 The notebooks use relative paths based on their current folders:
 
 - Source notebooks use `../../../data/...`
-- Integration, feature, modeling, model comparison, portfolio optimization, live evaluation, and paper-trading notebooks use `../../data/...`
+- Integration, feature, modeling, model comparison, portfolio optimization,
+  live evaluation, paper-trading, and predictive-vs-historical notebooks use
+  `../../data/...`
 
 If a notebook is moved, its data paths need to be updated.
 

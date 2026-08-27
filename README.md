@@ -1,9 +1,13 @@
 # Predictive Portfolio Optimization and Risk Analytics
 
+[![CI](https://github.com/SamiiShabuse/INFO442-Group-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/SamiiShabuse/INFO442-Group-Project/actions/workflows/ci.yml)
+
 This project is an end-to-end data science system for studying portfolio risk.
 It combines historical market data, macroeconomic context, volatility
 prediction, portfolio optimization, model evaluation, and an interactive
 Streamlit dashboard.
+
+Drexel INFO 442 Data Science Project.
 
 The core idea is simple: instead of trying to predict exact stock prices, the
 project predicts each asset's future 20-trading-day volatility. Those risk
@@ -12,6 +16,21 @@ compare portfolio strategies.
 
 This project is educational and analytical. It is not financial advice, and it
 does not submit real trades.
+
+## Key Results
+
+- Random Forest improved pooled 20-day volatility forecast MAE from 0.00465
+  for a trailing-volatility baseline to 0.00374 in the predictive-vs-historical
+  experiment, about 19.5% lower error.
+- In the walk-forward portfolio robustness sweep, the RF predictive risk model
+  produced lower realized portfolio volatility than the matched historical
+  risk model at all six tested rebalance frequencies.
+- The Sharpe-ratio advantage changed sign across rebalance frequencies, so the
+  defensible conclusion is stronger risk forecasting and risk control, not
+  consistently higher risk-adjusted returns.
+- The exported Random Forest artifact now uses a target-window-purged holdout
+  split so training rows whose 20-day target windows cross into the 2024+
+  test period are excluded from holdout training.
 
 ## Project Story
 
@@ -42,7 +61,9 @@ The project handles that question through a full pipeline:
    drawdown, cumulative return, and allocation visuals.
 8. Test live Random Forest predictions against new real market data as time
    passes.
-9. Generate dry-run rebalance orders for demonstration and paper-analysis.
+9. Run the predictive-vs-historical walk-forward experiment that directly
+   tests whether ML volatility forecasts improve portfolio risk outcomes.
+10. Generate dry-run rebalance orders for demonstration and paper-analysis.
 
 ## What Is Built
 
@@ -59,7 +80,8 @@ The project handles that question through a full pipeline:
 - Command-line scripts for training, refreshing features, predicting,
   archiving, evaluating, and generating dry-run orders.
 - Analysis notebooks for data acquisition, EDA, modeling, model comparison,
-  portfolio optimization, live RF evaluation, and paper-trading analysis.
+  portfolio optimization, predictive-vs-historical evaluation, live RF
+  evaluation, and paper-trading analysis.
 - A Streamlit dashboard with model, prediction, portfolio, and live optimizer
   pages.
 
@@ -92,12 +114,28 @@ notebooks/05_model_comparison/
 notebooks/06_portfolio_optimization/
 notebooks/07_live_model_evaluation/
 notebooks/08_paper_trading/
+notebooks/09_predictive_vs_historical/
 ```
 
 The notebooks are meant for explanation, visuals, and final analysis. Reusable
 logic lives in `src/portfolio_risk/`.
 
-### 2. Train The Random Forest Model
+### 2. Review The Definitive Experiment
+
+The project conclusion should be based on:
+
+```text
+notebooks/09_predictive_vs_historical/01_rf_vs_baseline_portfolio_impact.ipynb
+data/processed/predictive_vs_historical/
+```
+
+That notebook compares RF volatility forecasts against a trailing-volatility
+baseline, runs a walk-forward portfolio backtest, sweeps rebalance frequency,
+and checks risk-model calibration. The older notebook 06 portfolio comparison
+is still useful as an optimizer development step, but notebook 09 is the
+definitive research result.
+
+### 3. Train The Random Forest Model
 
 The exported Random Forest model is used by the live prediction workflow:
 
@@ -113,7 +151,10 @@ data/processed/modeling/random_forest/rf_model.metrics.csv
 data/processed/modeling/random_forest/rf_model.metadata.json
 ```
 
-### 3. Make A New Live Prediction Run
+The training workflow derives each row's `target_end_date` and purges rows
+whose future 20-trading-day target window crosses the holdout split.
+
+### 4. Make A New Live Prediction Run
 
 Use this when a new trading day is available:
 
@@ -132,7 +173,7 @@ Use this when a new trading day is available:
 This creates a latest prediction file, a dated prediction file, and an appended
 long-format prediction log.
 
-### 4. Evaluate The Live Model
+### 5. Evaluate The Live Model
 
 There are two evaluation ideas:
 
@@ -156,7 +197,7 @@ Run a trailing-volatility comparison:
   --out data\processed\modeling\random_forest\live_evaluation\rf_vs_trailing_20d_ending_YYYY-MM-DD.csv
 ```
 
-### 5. Generate Dry-Run Rebalance Orders
+### 6. Generate Dry-Run Rebalance Orders
 
 The optimizer chooses target weights. Order generation turns those target
 weights into buy/sell/hold instructions for a simulated portfolio.
@@ -168,14 +209,15 @@ weights into buy/sell/hold instructions for a simulated portfolio.
 The generated orders are reviewable CSV outputs only. They do not connect to a
 real brokerage account.
 
-### 6. Run The Dashboard
+### 7. Run The Dashboard
 
 ```powershell
 streamlit run dashboard/app.py
 ```
 
 The dashboard reads from `data/processed/` and presents model comparison,
-prediction exploration, portfolio strategy analysis, and live optimization.
+prediction exploration, the predictive-vs-historical experiment, and live
+optimization.
 
 ## Important Concepts
 
@@ -238,6 +280,12 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
+For editable package development:
+
+```powershell
+python -m pip install -e ".[dev]"
+```
+
 Run checks:
 
 ```powershell
@@ -255,6 +303,22 @@ Run checks:
 - `data/README.md`: data folder organization.
 - `dashboard/README.md`: dashboard pages and refresh instructions.
 - `reports/README.md`: polished deliverable guidance.
+- `docs/archive/course/`: historical course-process files preserved outside
+  the public-facing project path.
+
+## Team And Contributions
+
+This was built as a group data science project by Danny Eapen, Jeffrey Cheung,
+Joel Thomas, and Samii Shabuse.
+
+Local git history shows Samii Shabuse owned much of the package refactor,
+testing setup, script workflow, dashboard polish, and documentation cleanup.
+Jeffrey Cheung contributed the RF-vs-baseline notebook work, and Joel Thomas
+contributed project story documentation. Danny Eapen, Jeffrey Cheung, Joel
+Thomas, and Samii Shabuse all appear as repository contributors.
+
+Before publishing publicly, add each contributor's preferred GitHub profile
+link and confirm exact ownership wording with the team.
 
 ## Limitations
 

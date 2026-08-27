@@ -89,7 +89,8 @@ portfolio_risk/
   order outputs.
 - `portfolio_risk.training`: reusable Random Forest training workflow for
   loading labeled feature rows, time-splitting train/test data, fitting the
-  holdout/final models, and exporting model metrics and metadata.
+  holdout/final models, deriving target-window end dates, purging split-boundary
+  training rows, and exporting model metrics and metadata.
 
 The order-generation module does not submit real trades. It creates structured
 CSV outputs that can be reviewed, visualized, or used later by a separate paper

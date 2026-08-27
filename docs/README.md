@@ -1,7 +1,7 @@
 # Docs Folder
 
-This folder contains project documentation, class-process notes, analysis
-writeups, and weekly summaries. For the current end-to-end technical story,
+This folder contains current project documentation, analysis writeups, and
+archived course-process materials. For the current end-to-end technical story,
 start with `project_workflow.md`.
 
 ## Recommended Reading Order
@@ -17,19 +17,18 @@ start with `project_workflow.md`.
    - Modeling and feature-selection analysis.
 5. `analysis_reports/week_6_analysis.md`
    - Portfolio optimization and evaluation analysis.
-6. `weekly_summary/`
-   - Weekly project progress summaries.
+6. `archive/course/`
+   - Historical class-process notes, weekly summaries, roadmap, syllabus, and
+     presentation materials.
 
 ## Current Documents
 
 - `project_workflow.md`: full end-to-end workflow story.
-- `project_scope.md`: original scoping worksheet and project framing.
-- `why_this_project_works.md`: course-alignment explanation.
-- `DATA_ACQUISITION_PREPROCESSING_README.md`: data acquisition and cleaning notes.
+- `PROJECT_STORY.md`: concise narrative framing for the project.
 - `analysis_reports/`: longer analysis writeups.
-- `weekly_summary/`: weekly progress summaries.
-- `presentations/`: final or draft presentation files.
-- `class_syllabus.md`: course context and requirements.
+- `archive/course/`: historical course deliverables and process notes.
+- `archive/prototypes/`: older implementation prototypes that are no longer
+  part of the active workflow.
 
 ## What Belongs Here
 
@@ -38,7 +37,7 @@ start with `project_workflow.md`.
 - Weekly summaries
 - Project decisions and rationale
 - Analysis writeups
-- Supporting class or process documents
+- Current project decisions and rationale
 
 ## What Does Not Belong Here
 

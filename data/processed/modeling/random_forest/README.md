@@ -33,6 +33,11 @@ The exported model is created by:
 .\.venv\Scripts\python.exe scripts\train_rf_model.py
 ```
 
+The repeatable training script derives a `target_end_date` for each labeled
+row and purges rows whose future 20-trading-day target window would cross the
+holdout split. The current exported artifact purged 420 boundary rows from
+holdout training before fitting the reported Random Forest.
+
 ## Live Predictions
 
 `live_predictions/` stores current and archived prediction runs:

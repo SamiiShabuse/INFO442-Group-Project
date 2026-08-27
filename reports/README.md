@@ -2,6 +2,10 @@
 
 This folder is for polished project deliverables and presentation materials.
 
+Older course-specific reports and slides were moved to
+`../docs/archive/course/` so this folder can stay focused on polished public
+deliverables.
+
 ## What Belongs Here
 
 - Final report

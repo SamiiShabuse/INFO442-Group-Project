@@ -16,6 +16,9 @@ This folder contains cleaned and derived project datasets.
   - Combined model comparison tables used by the dashboard.
 - `portfolio_optimization/`
   - Portfolio strategy outputs, target weights, and dry-run rebalance orders.
+- `predictive_vs_historical/`
+  - Forecast accuracy, walk-forward backtest, rebalance-frequency robustness,
+    and calibration outputs from notebook 09.
 
 Use `source_data/` for cleaned individual data sources. Use the other folders for project-level outputs that combine or model across sources.
 
@@ -33,6 +36,9 @@ modeling/random_forest/live_predictions/
 
 modeling/random_forest/live_evaluation/
     completed-window and trailing-volatility evaluation outputs
+
+predictive_vs_historical/
+    definitive RF-vs-historical forecast and portfolio-impact outputs
 
 portfolio_optimization/live_weights/
     optimized target weights from live Random Forest predictions

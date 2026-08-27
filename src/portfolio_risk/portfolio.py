@@ -124,15 +124,38 @@ def build_rf_predicted_covariance_matrix(
     """
     vol_matrix = rf_predicted_vol_matrix.reindex(columns=assets)
 
-    missing_assets = vol_matrix.columns[vol_matrix.isna().all()].tolist()
-
     if prediction_date is None:
-        prediction_date = vol_matrix.dropna().index.min()
+        covered_assets = vol_matrix.columns[~vol_matrix.isna().all()].tolist()
+        if not covered_assets:
+            raise ValueError("No RF predictions are available for the requested assets")
+
+        complete_prediction_rows = vol_matrix[covered_assets].dropna()
+        if complete_prediction_rows.empty:
+            candidate_rows = vol_matrix[covered_assets].dropna(how="all")
+            if candidate_rows.empty:
+                raise ValueError("No RF predictions are available for the requested assets")
+            prediction_date = candidate_rows.index.min()
+        else:
+            prediction_date = complete_prediction_rows.index.min()
+    elif prediction_date not in vol_matrix.index:
+        raise ValueError(f"No RF prediction row found for {pd.Timestamp(prediction_date).date()}")
 
     rf_predicted_vol_by_asset = vol_matrix.loc[prediction_date].reindex(assets)
+    missing_assets = rf_predicted_vol_by_asset.index[
+        rf_predicted_vol_by_asset.isna()
+    ].tolist()
     rf_predicted_vol_by_asset = rf_predicted_vol_by_asset.fillna(
         historical_volatility.reindex(assets)
     )
+
+    unavailable_assets = rf_predicted_vol_by_asset.index[
+        rf_predicted_vol_by_asset.isna()
+    ].tolist()
+    if unavailable_assets:
+        raise ValueError(
+            "Missing both RF predictions and historical volatility for: "
+            + ", ".join(unavailable_assets)
+        )
 
     covariance_matrix = pd.DataFrame(
         np.outer(rf_predicted_vol_by_asset, rf_predicted_vol_by_asset)
@@ -157,6 +180,16 @@ def optimize_portfolio(
     and each individual asset weight is capped by max_weight.
     """
     n_assets = len(covariance_matrix)
+    if n_assets == 0:
+        raise ValueError("Cannot optimize a portfolio with no assets")
+    if max_weight <= 0 or max_weight > 1:
+        raise ValueError("max_weight must be greater than 0 and no more than 1")
+    if n_assets * max_weight < 1:
+        raise ValueError(
+            f"max_weight={max_weight:.2%} is infeasible for {n_assets} assets; "
+            f"select at least {int(np.ceil(1 / max_weight))} assets or raise the cap"
+        )
+
     initial_weights = np.repeat(1 / n_assets, n_assets)
     bounds = tuple((0, max_weight) for _ in range(n_assets))
     constraints = {"type": "eq", "fun": lambda weights: np.sum(weights) - 1}

@@ -27,14 +27,14 @@ The dashboard uses cleaned project outputs from `data/processed/`, especially:
 - `data/processed/features/`
 - `data/processed/modeling/`
 - `data/processed/model_comparison/`
-- `data/processed/portfolio_optimization/`
+- `data/processed/predictive_vs_historical/`
 
 ## Current Pages
 
 - Overview
 - Model Comparison
 - Prediction Explorer
-- Portfolio Strategies
+- Predictive vs Historical
 - Live Optimizer
 
 ## Model Connections
@@ -52,7 +52,16 @@ combined with historical correlations. Random Forest remains the best
 all-ticker volatility model by MAE, RMSE, and R2; the MLP is included as a
 comparison model but is not used for portfolio construction.
 
-The Portfolio Strategies page reads the saved outputs from `data/processed/portfolio_optimization/`.
+The Predictive vs Historical page reads notebook-09 outputs from
+`data/processed/predictive_vs_historical/`. This is the dashboard's definitive
+portfolio-impact view: RF forecast error versus a trailing-volatility baseline,
+walk-forward cumulative performance, rebalance-frequency robustness, and
+risk-model calibration.
+
+The Live Optimizer is an interactive sandbox. It builds a user-selected
+portfolio from one selected RF prediction date and compares that fixed
+allocation against historical and equal-weight versions over the 2024+ test
+period. Use the Predictive vs Historical page for the project conclusion.
 
 ## Refreshing Outputs
 
@@ -60,7 +69,7 @@ If feature engineering or model notebooks are rerun, rerun the downstream
 notebooks in order before launching the dashboard:
 
 1. `notebooks/05_model_comparison/01_model_comparison.ipynb`
-2. `notebooks/06_portfolio_optimization/01_portfolio_optimization.ipynb`
+2. `notebooks/09_predictive_vs_historical/01_rf_vs_baseline_portfolio_impact.ipynb`
 
 This keeps the dashboard tables and charts aligned with the newest model outputs.
 

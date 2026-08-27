@@ -5,29 +5,16 @@ INFO 442 Group Project
 Run with: streamlit run dashboard/app.py
 """
 
-import sys
-
-import streamlit as st
-import pandas as pd
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy.optimize import minimize
 
-# ============================================================
-# PATHS
-# ============================================================
-APP_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = APP_DIR.parent
-DATA_ROOT = PROJECT_ROOT / "data" / "processed"
-MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
-MODELING_PATH = DATA_ROOT / "modeling"
-PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
-INTEGRATED_PATH = DATA_ROOT / "integrated"
-
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
-from portfolio_risk.portfolio import (  # noqa: E402
+from portfolio_risk.portfolio import (
     BENCHMARK,
     build_rf_predicted_covariance_matrix,
     evaluate_portfolio,
@@ -39,6 +26,17 @@ from portfolio_risk.portfolio import (  # noqa: E402
     portfolio_sharpe,
     portfolio_volatility,
 )
+
+# ============================================================
+# PATHS
+# ============================================================
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
+DATA_ROOT = PROJECT_ROOT / "data" / "processed"
+MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
+MODELING_PATH = DATA_ROOT / "modeling"
+PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
+INTEGRATED_PATH = DATA_ROOT / "integrated"
 
 st.set_page_config(
     page_title="Portfolio Optimization Dashboard",

@@ -6,12 +6,18 @@ from pathlib import Path
 import time
 
 import joblib
+import numpy as np
 import pandas as pd
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
-from portfolio_risk.config import DATE_COLUMN, TARGET_COLUMN, TICKER_COLUMN
+from portfolio_risk.config import (
+    DATE_COLUMN,
+    TARGET_COLUMN,
+    TARGET_END_DATE_COLUMN,
+    TICKER_COLUMN,
+)
 from portfolio_risk.evaluation import regression_metrics
 from portfolio_risk.modeling import load_selected_features
 
@@ -20,6 +26,7 @@ DEFAULT_SPLIT_DATE = "2024-01-01"
 DEFAULT_MAX_DEPTH = 16
 DEFAULT_MIN_SAMPLES_LEAF = 100
 DEFAULT_N_ESTIMATORS = 100
+DEFAULT_TARGET_WINDOW_DAYS = 20
 DEFAULT_RF_PARAM_GRID = {
     "max_depth": [4, 8, 16, None],
     "min_samples_leaf": [1, 20, 100],
@@ -35,6 +42,7 @@ class ModelingDataSplit:
     split_timestamp: pd.Timestamp
     train_df: pd.DataFrame
     test_df: pd.DataFrame
+    purged_train_rows: int = 0
 
 
 @dataclass(frozen=True)
@@ -89,12 +97,17 @@ def load_modeling_data(features_path: str | Path, selected_features: list[str]) 
         raise SystemExit(f"Modeling dataset is missing columns: {missing_columns}")
 
     df[DATE_COLUMN] = pd.to_datetime(df[DATE_COLUMN])
+    if TARGET_END_DATE_COLUMN in df.columns:
+        df[TARGET_END_DATE_COLUMN] = pd.to_datetime(df[TARGET_END_DATE_COLUMN])
+    else:
+        df = add_target_end_dates(df)
 
     numeric_columns = selected_features + [TARGET_COLUMN]
     for column in numeric_columns:
         df[column] = pd.to_numeric(df[column], errors="coerce")
 
-    model_df = df.dropna(subset=numeric_columns).copy()
+    complete_columns = numeric_columns + [TARGET_END_DATE_COLUMN]
+    model_df = df.dropna(subset=complete_columns).copy()
     model_df = model_df.sort_values([DATE_COLUMN, TICKER_COLUMN]).reset_index(drop=True)
 
     if model_df.empty:
@@ -103,10 +116,37 @@ def load_modeling_data(features_path: str | Path, selected_features: list[str]) 
     return model_df
 
 
+def add_target_end_dates(
+    df: pd.DataFrame,
+    *,
+    target_window_days: int = DEFAULT_TARGET_WINDOW_DAYS,
+) -> pd.DataFrame:
+    """Add the date when each row's future-volatility target window ends."""
+    df = df.sort_values([TICKER_COLUMN, DATE_COLUMN]).copy()
+    df[TARGET_END_DATE_COLUMN] = df.groupby(TICKER_COLUMN)[DATE_COLUMN].shift(
+        -target_window_days
+    )
+    return df
+
+
 def split_modeling_data(model_df: pd.DataFrame, split_date: str) -> ModelingDataSplit:
     """Split labeled modeling rows into chronological train and holdout sets."""
+    model_df = model_df.copy()
+    model_df[DATE_COLUMN] = pd.to_datetime(model_df[DATE_COLUMN])
+    if TARGET_END_DATE_COLUMN in model_df.columns:
+        model_df[TARGET_END_DATE_COLUMN] = pd.to_datetime(model_df[TARGET_END_DATE_COLUMN])
+
     split_timestamp = pd.Timestamp(split_date)
-    train_df = model_df[model_df[DATE_COLUMN] < split_timestamp]
+    train_candidate = model_df[model_df[DATE_COLUMN] < split_timestamp]
+    purged_train_rows = 0
+    if TARGET_END_DATE_COLUMN in model_df.columns:
+        target_end_date = pd.to_datetime(train_candidate[TARGET_END_DATE_COLUMN])
+        train_df = train_candidate[
+            target_end_date < split_timestamp
+        ]
+        purged_train_rows = len(train_candidate) - len(train_df)
+    else:
+        train_df = train_candidate
     test_df = model_df[model_df[DATE_COLUMN] >= split_timestamp]
 
     if train_df.empty or test_df.empty:
@@ -119,7 +159,45 @@ def split_modeling_data(model_df: pd.DataFrame, split_date: str) -> ModelingData
         split_timestamp=split_timestamp,
         train_df=train_df,
         test_df=test_df,
+        purged_train_rows=purged_train_rows,
     )
+
+
+def leakage_safe_time_series_cv(
+    train_df: pd.DataFrame,
+    *,
+    n_splits: int,
+) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Build TimeSeriesSplit folds that purge target windows crossing validation starts."""
+    if TARGET_END_DATE_COLUMN not in train_df.columns:
+        return list(TimeSeriesSplit(n_splits=n_splits).split(train_df))
+
+    date_series = pd.to_datetime(train_df[DATE_COLUMN])
+    target_end_series = pd.to_datetime(train_df[TARGET_END_DATE_COLUMN])
+    unique_dates = pd.Series(date_series.sort_values().unique())
+    date_splits = TimeSeriesSplit(n_splits=n_splits).split(unique_dates)
+
+    folds = []
+    for train_date_idx, validation_date_idx in date_splits:
+        train_dates = set(unique_dates.iloc[train_date_idx])
+        validation_dates = set(unique_dates.iloc[validation_date_idx])
+        validation_start = unique_dates.iloc[validation_date_idx].min()
+
+        train_mask = date_series.isin(train_dates) & (target_end_series < validation_start)
+        validation_mask = date_series.isin(validation_dates)
+        train_indices = np.flatnonzero(train_mask.to_numpy())
+        validation_indices = np.flatnonzero(validation_mask.to_numpy())
+
+        if len(train_indices) and len(validation_indices):
+            folds.append((train_indices, validation_indices))
+
+    if not folds:
+        raise SystemExit(
+            "Time-series CV could not create leakage-safe folds. "
+            "Use fewer splits or provide more training history."
+        )
+
+    return folds
 
 
 def fit_holdout_random_forest(
@@ -133,6 +211,7 @@ def fit_holdout_random_forest(
     n_estimators: int = DEFAULT_N_ESTIMATORS,
     param_grid: dict | None = None,
     cv_splits: int = 5,
+    cv=None,
 ) -> tuple[RandomForestRegressor, dict]:
     """Fit the holdout model, optionally using notebook-style grid search."""
     if tune:
@@ -143,7 +222,7 @@ def fit_holdout_random_forest(
                 n_jobs=n_jobs,
             ),
             param_grid or DEFAULT_RF_PARAM_GRID,
-            cv=TimeSeriesSplit(n_splits=cv_splits),
+            cv=cv or TimeSeriesSplit(n_splits=cv_splits),
             scoring="neg_mean_squared_error",
         )
         grid_search.fit(X_train, y_train)
@@ -215,6 +294,9 @@ def train_random_forest_model(
         max_depth=max_depth,
         min_samples_leaf=min_samples_leaf,
         n_estimators=n_estimators,
+        cv=leakage_safe_time_series_cv(split.train_df.reset_index(drop=True), n_splits=5)
+        if tune
+        else None,
     )
     duration_seconds = time.perf_counter() - start_time
     ended = pd.Timestamp.now()
@@ -286,8 +368,14 @@ def build_training_metadata(
         "n_jobs": n_jobs,
         "tuned_with_grid_search": tune,
         "split_date": split.split_timestamp.date().isoformat(),
+        "target_end_date_column": TARGET_END_DATE_COLUMN
+        if TARGET_END_DATE_COLUMN in split.train_df.columns
+        else None,
         "train_start_date": split.train_df[DATE_COLUMN].min().date().isoformat(),
         "train_end_date": split.train_df[DATE_COLUMN].max().date().isoformat(),
+        "train_target_end_date": split.train_df[TARGET_END_DATE_COLUMN].max().date().isoformat()
+        if TARGET_END_DATE_COLUMN in split.train_df.columns
+        else None,
         "test_start_date": split.test_df[DATE_COLUMN].min().date().isoformat(),
         "test_end_date": split.test_df[DATE_COLUMN].max().date().isoformat(),
         "final_fit_start_date": pd.concat(
@@ -297,6 +385,7 @@ def build_training_metadata(
             [split.train_df[DATE_COLUMN], split.test_df[DATE_COLUMN]]
         ).max().date().isoformat(),
         "train_rows": int(len(split.train_df)),
+        "purged_train_rows": int(split.purged_train_rows),
         "test_rows": int(len(split.test_df)),
         "final_fit_rows": int(training.final_fit_rows),
         "training_start_timestamp": training.started.isoformat(),

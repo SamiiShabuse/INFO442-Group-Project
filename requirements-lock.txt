@@ -1,4 +1,5 @@
-# Only use this version if requirements.txt doesn't work. This is Samii's version on 6/26/2026.
+# Environment lock captured from a working development setup.
+# Prefer `pip install -r requirements.txt` for normal project setup.
 altair==6.2.2
 anyio==4.14.1
 argon2-cffi==25.1.0
@@ -144,6 +145,6 @@ wcwidth==0.8.1
 webcolors==25.10.0
 webencodings==0.5.1
 websocket-client==1.9.0
-websockets==16.0
+websockets==17.1
 widgetsnbextension==4.0.15
 yfinance==1.4.1

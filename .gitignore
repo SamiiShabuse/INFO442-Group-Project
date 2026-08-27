@@ -9,6 +9,9 @@ pytest-cache-files-*/
 tests/.tmp/
 pytest_tmp/
 *.pyc
+*.egg-info/
+build/
+dist/
 .DS_Store
 .env
 .ipynb_checkpoints/

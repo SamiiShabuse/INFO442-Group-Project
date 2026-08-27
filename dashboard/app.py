@@ -4,30 +4,17 @@ Portfolio Optimization & Risk Analytics Dashboard
 Run with: streamlit run dashboard/app.py
 """
 
-import sys
 from math import ceil
-
-import streamlit as st
-import pandas as pd
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
 from scipy.optimize import minimize
 
-# ============================================================
-# PATHS
-# ============================================================
-APP_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = APP_DIR.parent
-DATA_ROOT = PROJECT_ROOT / "data" / "processed"
-MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
-MODELING_PATH = DATA_ROOT / "modeling"
-INTEGRATED_PATH = DATA_ROOT / "integrated"
-PREDICTIVE_VS_HISTORICAL_PATH = DATA_ROOT / "predictive_vs_historical"
-
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
-from portfolio_risk.portfolio import (  # noqa: E402
+from portfolio_risk.portfolio import (
     BENCHMARK,
     build_rf_predicted_covariance_matrix,
     evaluate_portfolio,
@@ -39,6 +26,18 @@ from portfolio_risk.portfolio import (  # noqa: E402
     portfolio_sharpe,
     portfolio_volatility,
 )
+
+# ============================================================
+# PATHS
+# ============================================================
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
+DATA_ROOT = PROJECT_ROOT / "data" / "processed"
+MODEL_COMPARISON_PATH = DATA_ROOT / "model_comparison"
+MODELING_PATH = DATA_ROOT / "modeling"
+PORTFOLIO_PATH = DATA_ROOT / "portfolio_optimization"
+INTEGRATED_PATH = DATA_ROOT / "integrated"
+PREDICTIVE_VS_HISTORICAL_PATH = DATA_ROOT / "predictive_vs_historical"
 
 st.set_page_config(
     page_title="Portfolio Optimization Dashboard",

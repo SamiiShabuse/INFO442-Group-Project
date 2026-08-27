@@ -1,3 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "predictive-portfolio-risk"
+version = "0.1.0"
+description = "Machine-learning volatility forecasts for portfolio risk analysis and optimization."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "arch",
+    "joblib",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pandas-datareader",
+    "plotly",
+    "scikit-learn",
+    "scipy",
+    "seaborn",
+    "streamlit",
+    "websockets>=16",
+    "yfinance",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter",
+    "notebook",
+    "pytest",
+    "ruff",
+]
+dashboard = [
+    "plotly",
+    "scipy",
+    "streamlit",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 addopts = "-q -p no:cacheprovider"
 pythonpath = ["src"]
@@ -22,5 +64,4 @@ exclude = [
 select = ["E4", "E7", "E9", "F"]
 
 [tool.ruff.lint.per-file-ignores]
-"dashboard/app.py" = ["E402"]
 "scripts/*.py" = ["E402"]

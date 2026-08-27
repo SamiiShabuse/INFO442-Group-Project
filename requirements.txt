@@ -1,15 +1,1 @@
-pandas
-numpy
-matplotlib
-seaborn
-plotly
-scikit-learn
-scipy
-streamlit
-yfinance
-pandas-datareader
-arch
-jupyter
-notebook
-pytest
-ruff
+-e .[dev]

@@ -8,6 +8,8 @@ from portfolio_risk.training import (
     BASELINE_MODEL_LABEL,
     DEFAULT_MAX_DEPTH,
     RF_MODEL_LABEL,
+    build_comparison_metrics_frame,
+    build_holdout_predictions_frame,
     add_target_end_dates,
     build_metrics_frame,
     build_training_metadata,
@@ -161,6 +163,22 @@ def test_build_metrics_frame_includes_baseline_when_available():
     assert list(metrics["model"]) == [BASELINE_MODEL_LABEL, RF_MODEL_LABEL]
 
 
+def test_build_holdout_predictions_frame_exports_notebook_columns():
+    model_df = make_modeling_frame()
+    split = split_modeling_data(model_df, "2023-12-26")
+
+    predictions = [0.12, 0.13, 0.14, 0.15]
+    prediction_frame = build_holdout_predictions_frame(split, predictions)
+
+    assert list(prediction_frame.columns) == [
+        "Date",
+        "ticker",
+        TARGET_COLUMN,
+        "predicted_future_volatility_20d",
+    ]
+    assert prediction_frame["predicted_future_volatility_20d"].tolist() == predictions
+
+
 def test_train_random_forest_model_reports_metrics_and_refits_all_rows():
     selected_features = ["signal_a", "signal_b"]
     model_df = make_modeling_frame()
@@ -181,6 +199,35 @@ def test_train_random_forest_model_reports_metrics_and_refits_all_rows():
     assert result.baseline_metrics is not None
     assert result.final_fit_rows == len(model_df)
     assert list(result.final_model.feature_names_in_) == selected_features
+    assert list(result.holdout_predictions.columns) == [
+        "Date",
+        "ticker",
+        TARGET_COLUMN,
+        "predicted_future_volatility_20d",
+    ]
+
+
+def test_build_comparison_metrics_frame_exports_split_metadata():
+    selected_features = ["signal_a", "signal_b"]
+    result = train_random_forest_model(
+        make_modeling_frame_with_target_end_dates(),
+        selected_features,
+        split_date="2023-12-26",
+        n_jobs=1,
+        tune=False,
+        max_depth=DEFAULT_MAX_DEPTH,
+        min_samples_leaf=1,
+        n_estimators=5,
+    )
+
+    metrics = build_comparison_metrics_frame(result)
+
+    assert list(metrics["model"]) == [BASELINE_MODEL_LABEL, RF_MODEL_LABEL]
+    assert metrics["split_date"].unique().tolist() == ["2023-12-26"]
+    assert metrics["train_rows"].unique().tolist() == [2]
+    assert metrics["test_rows"].unique().tolist() == [4]
+    assert pd.isna(metrics.loc[0, "training_duration_seconds"])
+    assert not pd.isna(metrics.loc[1, "training_duration_seconds"])
 
 
 def test_build_training_metadata_records_reproducibility_fields():

@@ -15,6 +15,12 @@ Run it from the project root with:
 streamlit run dashboard/app.py
 ```
 
+Live deployment:
+
+```text
+https://portfolio-volatility-optimizer.streamlit.app/
+```
+
 Install dashboard dependencies from the project root with:
 
 ```bash
@@ -48,9 +54,10 @@ The Prediction Explorer reads each model's `test_predictions.csv` file and
 supports all five all-ticker models, including the MLP.
 
 The Live Optimizer intentionally uses Random Forest predicted volatility
-combined with historical correlations. Random Forest remains the best
-all-ticker volatility model by MAE, RMSE, and R2; the MLP is included as a
-comparison model but is not used for portfolio construction.
+combined with historical correlations. Random Forest is used because it has a
+repeatable artifact/export workflow and leakage-safe holdout performance above
+the trailing-volatility baseline; the other models remain available for
+comparison in the Prediction Explorer.
 
 The Predictive vs Historical page reads notebook-09 outputs from
 `data/processed/predictive_vs_historical/`. This is the dashboard's definitive
@@ -68,8 +75,9 @@ period. Use the Predictive vs Historical page for the project conclusion.
 If feature engineering or model notebooks are rerun, rerun the downstream
 notebooks in order before launching the dashboard:
 
-1. `notebooks/05_model_comparison/01_model_comparison.ipynb`
-2. `notebooks/09_predictive_vs_historical/01_rf_vs_baseline_portfolio_impact.ipynb`
+1. `scripts/train_rf_model.py`
+2. `notebooks/05_model_comparison/01_model_comparison.ipynb`
+3. `notebooks/09_predictive_vs_historical/01_rf_vs_baseline_portfolio_impact.ipynb`
 
 This keeps the dashboard tables and charts aligned with the newest model outputs.
 
